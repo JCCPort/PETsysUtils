@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from petsys import daqd, config, meta
+from petsys import daqd, config, meta, fe_temperature
 from copy import deepcopy
 import pandas
 import os
 import argparse
 import math
 import time
-
 
 parser = argparse.ArgumentParser(description='Acquire data for TDC calibration')
 parser.add_argument("--config", type=str, required=True, help="Configuration file")
@@ -17,6 +16,7 @@ parser.add_argument("--time", type=float, required=True, help="Acquisition time 
 parser.add_argument("--mode", type=str, required=True, choices=["tot", "qdc", "mixed"], help = "Acquisition mode (tot, qdc or mixed)")
 parser.add_argument("--enable-hw-trigger", dest="hwTrigger", action="store_true", help="Enable the hardware coincidence filter")
 parser.add_argument("--param-table", type=str, dest="paramTable", help="Table containing the name and values of 1 or 2 parameters to be scanned during data acquisition. Allowed parameters are: OV (SIPM Overvoltage), vth_t1 (t1 discriminator threshold, in DAC units relative to the channel baseline), vth_t2 (t2 discriminator threshold, in DAC units relative to the channel baseline), vth_e (e discriminator threshold, in DAC units relative to the channel baseline), disc_lsb_t1 (t1 discriminator DAC LSB)")
+parser.add_argument("--run", type=float, help="Run number")
 
 args = parser.parse_args()
 
@@ -61,9 +61,39 @@ activeChannels = [ (portID, slaveID, chipID, channelID) for channelID in range(6
 
 asicsConfig = daqd.getAsicsConfig()
 
-# save metadata to json file
-meta.findMeta(arg.config)
+#### ADDED BY WILF; JUNE 2022 ####
 
+# save metadata to json file
+# initiate instance of Data class to store metadata
+metadata = meta.Data()
+# read in class attributes from arguments and global scope
+metadata.run = args.run
+metadata.start_time = time.asctime()
+metadata.end_time = None
+metadata.run_time = args.time
+metadata.mode = args.mode
+metadata.hwTrigger = args.hwTrigger
+metadata.scan_parameters = args.paramTable
+# get disc thresholds from daqd connection
+thresholds = asicsConfig[activeAsics[0]].channelConfig[0]
+metadata.vth_t1 = thresholds.get('vth_t1')
+metadata.vth_t2 = thresholds.get('vth_t2')
+metadata.vth_te = thresholds.get('vth_e')
+# get list of temp sensors
+sensor_list = fe_temperature.get_sensor_list(daqd)
+# read temp sensors
+for sensor in sensor_list:
+    metadata.start_temp[sensor] = sensor.get_temperature()
+# use daq connection to read bias settings
+biasConfig = daqd.get_hvdac_config()
+dummy = daqd.getActiveBiasChannels()[0]
+offs, preBDV, metadata.BDV, metadata.OV = systemConfig.getBiasChannelDefaultSettings(dummy)
+# use class function to find remaining metadata in config file
+metadata.findMeta(arg.config)
+metadata.saveMeta(args.fileNamePrefix)
+print("Python: saved metadata to "+args.fileNamePrefix+".json")
+
+##################################
 if args.paramTable is None:
         daqd.acquire(args.time, 0, 0)
 else:
@@ -123,3 +153,9 @@ else:
 
 
 systemConfig.loadToHardware(daqd, bias_enable=config.APPLY_BIAS_OFF)
+# read temp sensors
+for sensor in sensor_list:
+    metadata.end_temp[sensor] = sensor.get_temperature()
+metadata.end_time = time.asctime()
+metadata.saveMeta(args.fileNamePrefix)
+print("Python: saved metadata to "+args.fileNamePrefix+".json")
