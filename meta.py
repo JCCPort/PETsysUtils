@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
 
 # created by Wilf Shorrock, June 2022
-# adds library of functions to save desired metadata to json file
-# relies on the assumption that all channels are configured the same
+# adds data class to find, store and save desired metadata 
+# does not account for individually configured channels
 
 from petsys import config
 import configparser
 import time
 import json
 
-
 class Data:
-    '''Holds the metadata for a single run'''
     def __init__(self):
         self.run = 0
         self.source = ''
         self.photosensors = ''
+        self.material = ''
         self.start_time = None
         self.end_time = None
         self.run_time = 0
@@ -35,27 +34,20 @@ class Data:
         self.vth_t1 = 0
         self.vth_t2 = 0
         self.vth_e = 0
-        self.scan_parameters = ''
+        self.step1par = ''
+        self.step1 = []
+        self.step2par = ''
+        self.step2 = []
+        self.status = 'NOT STARTED'
         self.data = {}
-    # finds the metadata in the given config file and saves as dictionary
-    def findMeta(configFile):
-        configParser = configparser.RawConfigParser()
-        configParser.read(configFile)
-        asicParams = config.parseAsicParameters(configParser)
-        self.trigger_mode_1 = asicParams["channel","trigger_mode_1"]
-        self.trigger_mode_2_t = asicParams["channel","trigger_mode_2_t"]
-        self.trigger_mode_2_q = asicParams["channel","trigger_mode_2_q"]
-        self.trigger_mode_2_e = asicParams["channel","trigger_mode_2_e"]
-        self.trigger_mode_2_b = asicParams["channel","trigger_mode_2_b"]
-        self.fe_delay = asicParams["channel","fe_delay"]
-        self.LSB_T1 = asicParams["global","disc_lsb_t1"]
-
-        # prepare data for json format
+    def fillData(self):
         self.data = {
                  'run' : self.run,
                  'source' : self.source,
                  'photosensors': self.photosensors,
-                 'start time' : self.time,
+                 'material' : self.material,
+                 'start time' : self.start_time,
+                 'end time' : self.end_time,
                  'run time': self.run_time,
                  'mode' : self.mode,
                  'hwTrigger' : self.hwTrigger,
@@ -73,9 +65,33 @@ class Data:
                  'vth_t1' : self.vth_t1,
                  'vth_t2' : self.vth_t2,
                  'vth_e' : self.vth_e,
-                 'scan parameters' : self.scan_parameters
+                 'step1 parameter' : self.step1par,
+                 'step1' : self.step1,
+                 'step2 parameter' : self.step2par,
+                 'step2' : self.step2,
+                 'status' : self.status
                }
-    def saveMeta(filePrefix):
+    # finds the metadata in the given config file and saves as dictionary
+    def findMeta(self, configFile):
+        configParser = configparser.RawConfigParser()
+        configParser.read(configFile)
+        self.source = configParser.get("other","source")
+        self.photosensors = configParser.get("other","photosensors")
+        self.material = configParser.get("other","material")
+        self.trigger_mode_1 = configParser.get("asic_parameters","trigger_mode_1", fallback='DEFAULT')
+        self.trigger_mode_2_t = configParser.get("asic_parameters","trigger_mode_2_t", fallback='DEFAULT')
+        self.trigger_mode_2_q = configParser.get("asic_parameters","trigger_mode_2_q", fallback='DEFAULT')
+        self.trigger_mode_2_e = configParser.get("asic_parameters","trigger_mode_2_e", fallback='DEFAULT')
+        self.trigger_mode_2_b = configParser.get("asic_parameters","trigger_mode_2_b", fallback='DEFAULT')
+        self.fe_delay = configParser.get("asic_parameters","fe_delay", fallback='DEFAULT')
+        self.LSB_T1 = configParser.get("asic_parameters","disc_lsb_t1", fallback='DEFAULT')
+        self.status = 'INCOMPLETE'
+
+        # prepare data for json format
+        self.fillData()
+        
+    def saveMeta(self, filePrefix):
         file = filePrefix+".json"
+        self.fillData()
         with open(file, 'w') as fp:
-            json.dump(self.data, fp)
+            json.dump(self.data, fp, indent=4)

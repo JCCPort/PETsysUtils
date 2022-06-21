@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from petsys import daqd, config, meta, fe_temperature
+from petsys import daqd, config, fe_temperature, meta
 from copy import deepcopy
 import pandas
 import os
@@ -21,6 +21,7 @@ parser.add_argument("--run", type=float, help="Run number")
 args = parser.parse_args()
 
 validParams = ["OV","vth_t1","vth_t2","vth_e","disc_lsb_t1"]
+parNames = []
 
 if args.paramTable is not None:
         if not os.path.exists(args.paramTable):
@@ -69,27 +70,29 @@ metadata = meta.Data()
 # read in class attributes from arguments and global scope
 metadata.run = args.run
 metadata.start_time = time.asctime()
-metadata.end_time = None
 metadata.run_time = args.time
 metadata.mode = args.mode
 metadata.hwTrigger = args.hwTrigger
 metadata.scan_parameters = args.paramTable
-# get disc thresholds from daqd connection
-thresholds = asicsConfig[activeAsics[0]].channelConfig[0]
-metadata.vth_t1 = thresholds.get('vth_t1')
-metadata.vth_t2 = thresholds.get('vth_t2')
-metadata.vth_te = thresholds.get('vth_e')
+if len(parNames) > 0:
+    metadata.step1par = parNames[0]
+    metadata.step2par = parNames[1]
+# get disc thresholds
+dummyChannel = activeAsics[0] + (0,)
+metadata.vth_t1, metadata.vth_t2, metadata.vth_e = systemConfig.getAsicChannelDefaultThresholds(dummyChannel)
 # get list of temp sensors
 sensor_list = fe_temperature.get_sensor_list(daqd)
 # read temp sensors
 for sensor in sensor_list:
-    metadata.start_temp[sensor] = sensor.get_temperature()
+    portID, slaveID, moduleID, subModuleID, kind = sensor.get_location()
+    location = str(portID)+"_"+str(moduleID)+"_"+str(subModuleID)+"_"+kind
+    metadata.start_temp[location] = sensor.get_temperature()
 # use daq connection to read bias settings
 biasConfig = daqd.get_hvdac_config()
 dummy = daqd.getActiveBiasChannels()[0]
 offs, preBDV, metadata.BDV, metadata.OV = systemConfig.getBiasChannelDefaultSettings(dummy)
 # use class function to find remaining metadata in config file
-metadata.findMeta(arg.config)
+metadata.findMeta(args.config)
 metadata.saveMeta(args.fileNamePrefix)
 print("Python: saved metadata to "+args.fileNamePrefix+".json")
 
@@ -97,10 +100,18 @@ print("Python: saved metadata to "+args.fileNamePrefix+".json")
 if args.paramTable is None:
         daqd.acquire(args.time, 0, 0)
 else:
+    #########
+        for step2 in step2Values:
+                step2 = float(step2)
+                if math.isnan(step2):
+                        continue 
+                metadata.data["step2"].append(step2) 
+    ########
         for step1 in step1Values:
                 step1 = float(step1)
                 if math.isnan(step1):
                         continue 
+                metadata.data["step1"].append(step1) #######
                 if parNames[0] in ['vth_t1', 'vth_t2', 'vth_e']:
                         for portID, slaveID, chipID, channelID in activeChannels:
                                 cc = asicsConfig[(portID, slaveID, chipID)].channelConfig[channelID]
@@ -153,9 +164,14 @@ else:
 
 
 systemConfig.loadToHardware(daqd, bias_enable=config.APPLY_BIAS_OFF)
+
+#### ADDED BY WILF; JUNE 2022 ####
 # read temp sensors
 for sensor in sensor_list:
-    metadata.end_temp[sensor] = sensor.get_temperature()
+    portID, slaveID, moduleID, subModuleID, kind = sensor.get_location()
+    location = str(portID)+"_"+str(moduleID)+"_"+str(subModuleID)+"_"+kind
+    metadata.end_temp[location] = sensor.get_temperature()
 metadata.end_time = time.asctime()
+metadata.status = 'COMPLETE'
 metadata.saveMeta(args.fileNamePrefix)
 print("Python: saved metadata to "+args.fileNamePrefix+".json")
