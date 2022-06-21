@@ -76,3 +76,6 @@ class Data:
                  'scan parameters' : self.scan_parameters
                }
     def saveMeta(filePrefix):
+        file = filePrefix+".json"
+        with open(file, 'w') as fp:
+            json.dump(self.data, fp)
