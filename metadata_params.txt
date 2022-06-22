@@ -1,0 +1,32 @@
+{
+  'run' : run number,
+  'source' : the signal source (e.g. Na22 or LED pulser),
+  'photosensors': the type and setup of photosensors used,
+  'material' : the scintillation material used,
+  'start time' : start time of command execution,
+  'end time' : end time of command execution,
+  'run time': requested duration of data-taking,
+  'mode' : data-taking mode (QDC, TOT or mixed),
+  'hwTrigger' : if the hwTrigger was used or not,
+  'trigger_mode_1' : settings for t1 threshold trigger,
+  'trigger_mode_2_t' : settings for first time stamp,
+  'trigger_mode_2_q' : settings for integration start,
+  'trigger_mode_2_e' : settings for second time stamp,
+  'trigger_mode_2_b' : settings for integration end,
+  'fe_delay' : delay line settings,
+  'start temp' : the temperature measured at the start of the run. The sensor
+names are formatted "portID_slaveID_slotID_sensorLocation",
+  'end temp' : the temperature measured at the end of the run,
+  'BDV' : breakdown voltage,
+  'OV' : over voltage,
+  'LSB T1' : least significant bit settings for t1 threshold,
+  'vth_t1' : t1 discrimination threshold in DAC units,
+  'vth_t2' : t2 discrimination threshold in DAC units,
+  'vth_e' : e discrimination threshold in DAC units,
+  'step1 parameter' : the parameter scanned using step1,
+  'step1' : step1 values,
+  'step2 parameter' : the parameter scanned using step2,
+  'step2' : step2 values,
+  'status' : whether the run completed or not. If the was an error or ctrl-c
+  was used this will say 'INCOMPLETE'
+}
