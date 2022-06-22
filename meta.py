@@ -20,6 +20,13 @@ class Data:
         self.run_time = 0
         self.mode = ''
         self.hwTrigger = ''
+        self.type = None
+        self.threshold = None
+        self.pre_window = None
+        self.post_window = None
+        self.coincidence_window = None
+        self.single_acceptance_period = None
+        self.single_acceptance_length = None
         self.trigger_mode_1 = 0
         self.trigger_mode_2_t = 0
         self.trigger_mode_2_q = 0
@@ -50,7 +57,16 @@ class Data:
                  'end time' : self.end_time,
                  'run time': self.run_time,
                  'mode' : self.mode,
-                 'hwTrigger' : self.hwTrigger,
+                 'hwTrigger' : {
+                     'triggerOn' : self.hwTrigger,
+                     'type' : self.type,
+                     'threshold' : self.threshold,
+                     'pre_window' : self.pre_window,
+                     'post_window' : self.post_window,
+                     'coincidence_window' : self.coincidence_window,
+                     'single_acceptance_period' : self.single_acceptance_period,
+                     'single_acceptance_length' : self.single_acceptance_length
+                     },
                  'trigger_mode_1' : self.trigger_mode_1,
                  'trigger_mode_2_t' : self.trigger_mode_2_t,
                  'trigger_mode_2_q' : self.trigger_mode_2_q,
@@ -85,6 +101,13 @@ class Data:
         self.source = configParser.get("other","source")
         self.photosensors = configParser.get("other","photosensors")
         self.material = configParser.get("other","material")
+        self.type = configParser.get("hw_trigger","type")
+        self.threshold = configParser.get("hw_trigger","threshold")
+        self.pre_window = configParser.get("hw_trigger","pre_window")
+        self.post_window = configParser.get("hw_trigger","post_window")
+        self.coincidence_window = configParser.get("hw_trigger","coincidence_window")
+        self.single_acceptance_period = configParser.get("hw_trigger","single_acceptance_period")
+        self.single_acceptance_length = configParser.get("hw_trigger","single_acceptance_length")
         self.trigger_mode_1 = configParser.get("asic_parameters","channel.trigger_mode_1", fallback='DEFAULT')
         self.trigger_mode_2_t = configParser.get("asic_parameters","channel.trigger_mode_2_t", fallback='DEFAULT')
         self.trigger_mode_2_q = configParser.get("asic_parameters","channel.trigger_mode_2_q", fallback='DEFAULT')

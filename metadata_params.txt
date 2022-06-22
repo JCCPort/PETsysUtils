@@ -7,7 +7,14 @@
   'end time' : end time of command execution,
   'run time': requested duration of data-taking,
   'mode' : data-taking mode (QDC, TOT or mixed),
-  'hwTrigger' : if the hwTrigger was used or not,
+  'hwTrigger' : {
+	'triggerOn' : if the hardware trigger was used or not,
+	'type' : type of trigger (only option is 'builtin'),
+	'threshold' : hw trigger raw energy threhold in DAC units (only works in QDC mode),
+	'pre_window' : pre-event time window in units of clock periods
+	'post_window' : post-event time window in units of clock periods
+	'coincidence_window' : the time window to consider to events in coincidence; units of clock periods
+  },
   'trigger_mode_1' : settings for t1 threshold trigger,
   'trigger_mode_2_t' : settings for first time stamp,
   'trigger_mode_2_q' : settings for integration start,
