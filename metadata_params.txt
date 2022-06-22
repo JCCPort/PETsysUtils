@@ -15,7 +15,7 @@
   'trigger_mode_2_b' : settings for integration end,
   'fe_delay' : delay line settings,
   'start temp' : the temperature measured at the start of the run. The sensor
-names are formatted "portID_slaveID_slotID_sensorLocation",
+names are formatted "portID_slaveID_chipID_sensorLocation",
   'end temp' : the temperature measured at the end of the run,
   'BDV' : breakdown voltage,
   'OV' : over voltage,
