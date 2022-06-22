@@ -75,16 +75,23 @@ class Data:
     def findMeta(self, configFile):
         configParser = configparser.RawConfigParser()
         configParser.read(configFile)
+        if not configParser.has_section("other"):
+            print("ERROR: please add 'other' section to config file")
+            exit(1)
+        for key, value in configParser.items("other"):
+            if key not in ["photosensors","source","material"]:
+                print("Invalid other parameter: '%s'" % key)
+                exit(1)
         self.source = configParser.get("other","source")
         self.photosensors = configParser.get("other","photosensors")
         self.material = configParser.get("other","material")
-        self.trigger_mode_1 = configParser.get("asic_parameters","trigger_mode_1", fallback='DEFAULT')
-        self.trigger_mode_2_t = configParser.get("asic_parameters","trigger_mode_2_t", fallback='DEFAULT')
-        self.trigger_mode_2_q = configParser.get("asic_parameters","trigger_mode_2_q", fallback='DEFAULT')
-        self.trigger_mode_2_e = configParser.get("asic_parameters","trigger_mode_2_e", fallback='DEFAULT')
-        self.trigger_mode_2_b = configParser.get("asic_parameters","trigger_mode_2_b", fallback='DEFAULT')
-        self.fe_delay = configParser.get("asic_parameters","fe_delay", fallback='DEFAULT')
-        self.LSB_T1 = configParser.get("asic_parameters","disc_lsb_t1", fallback='DEFAULT')
+        self.trigger_mode_1 = configParser.get("asic_parameters","channel.trigger_mode_1", fallback='DEFAULT')
+        self.trigger_mode_2_t = configParser.get("asic_parameters","channel.trigger_mode_2_t", fallback='DEFAULT')
+        self.trigger_mode_2_q = configParser.get("asic_parameters","channel.trigger_mode_2_q", fallback='DEFAULT')
+        self.trigger_mode_2_e = configParser.get("asic_parameters","channel.trigger_mode_2_e", fallback='DEFAULT')
+        self.trigger_mode_2_b = configParser.get("asic_parameters","channel.trigger_mode_2_b", fallback='DEFAULT')
+        self.fe_delay = configParser.get("asic_parameters","channel.fe_delay", fallback='DEFAULT')
+        self.LSB_T1 = configParser.get("asic_parameters","global.disc_lsb_t1", fallback='DEFAULT')
         self.status = 'INCOMPLETE'
 
         # prepare data for json format
