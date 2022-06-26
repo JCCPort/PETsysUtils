@@ -14,6 +14,8 @@ parser = argparse.ArgumentParser(\
     description='Read petsys binary file and make data plots')
 parser.add_argument("-o",dest='fileName',type=str,required=True,\
     help='Prefix filename of binary file')
+parser.add_argument("-m",dest='mappingFile',type=str,required=True,\
+    help='Prefix filename of mapping file')
 parser.add_argument('--channel',type=int,\
     help='Channel to plot the energy distribution of. \
         If not included all channels will be plotted')
@@ -59,7 +61,7 @@ steps = pd.read_csv(sfile,header=None,sep='\s+',\
     names=['start event','end event','step1','step2'])
 
 # read in channel mapping info
-map = pd.read_csv('map_channel.tsv', \
+map = pd.read_csv(args.mappingFile+'.tsv', \
     sep='\t', header=None, \
     names = ['portID','slaveID','chipID','channelID','regionID',\
         'xi','yi','x','y','z'])
