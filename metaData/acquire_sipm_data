@@ -17,6 +17,7 @@ parser.add_argument("--mode", type=str, required=True, choices=["tot", "qdc", "m
 parser.add_argument("--enable-hw-trigger", dest="hwTrigger", action="store_true", help="Enable the hardware coincidence filter")
 parser.add_argument("--param-table", type=str, dest="paramTable", help="Table containing the name and values of 1 or 2 parameters to be scanned during data acquisition. Allowed parameters are: OV (SIPM Overvoltage), vth_t1 (t1 discriminator threshold, in DAC units relative to the channel baseline), vth_t2 (t2 discriminator threshold, in DAC units relative to the channel baseline), vth_e (e discriminator threshold, in DAC units relative to the channel baseline), disc_lsb_t1 (t1 discriminator DAC LSB)")
 parser.add_argument("--run", type=float, help="Run number")
+parser.add_argument("--tempInterval", type=float, narg='?',default=300,help="The interval of time in seconds between temperature readings during the data run (defaults to 300)")
 
 args = parser.parse_args()
 
@@ -98,20 +99,20 @@ print("Python: saved metadata to "+args.fileNamePrefix+".json")
 
 ##################################
 if args.paramTable is None:
-        daqd.acquire(args.time, 0, 0)
+        daqd.acquire(args.time, 0, 0, metadata, args.tempInterval)
 else:
-    #########
+    ######### ADDED BY WILF; JUNE 2022
         for step2 in step2Values:
                 step2 = float(step2)
                 if math.isnan(step2):
                         continue 
                 metadata.data["step2"].append(step2) 
-    ########
+    #########
         for step1 in step1Values:
                 step1 = float(step1)
                 if math.isnan(step1):
                         continue 
-                metadata.data["step1"].append(step1) #######
+                metadata.data["step1"].append(step1) ####### ADDED BY WILF; JUNE 2022
                 if parNames[0] in ['vth_t1', 'vth_t2', 'vth_e']:
                         for portID, slaveID, chipID, channelID in activeChannels:
                                 cc = asicsConfig[(portID, slaveID, chipID)].channelConfig[channelID]
@@ -159,14 +160,14 @@ else:
                         else:
                                 print("Python:: Acquiring data for: " + parNames[0] + " = " + str(step1) + " ; " + parNames[1] + " = " + str(step2))  
                         daqd.setAsicsConfig(asicsConfig)
-                        daqd.acquire(args.time, float(step1), float(step2))   
+                        daqd.acquire(args.time, float(step1), float(step2), metadata, args.tempInterval)   
                     
 
 
 systemConfig.loadToHardware(daqd, bias_enable=config.APPLY_BIAS_OFF)
 
 #### ADDED BY WILF; JUNE 2022 ####
-# read temp sensors
+# read temp sensors, end time and run status
 for sensor in sensor_list:
     portID, slaveID, moduleID, subModuleID, kind = sensor.get_location()
     location = str(portID)+"_"+str(moduleID)+"_"+str(subModuleID)+"_"+kind

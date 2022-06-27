@@ -34,6 +34,7 @@ class Data:
         self.trigger_mode_2_b = 0
         self.fe_delay = 0
         self.start_temp = {}
+        self.run_temp = {}
         self.end_temp = {}
         self.BDV = 0
         self.OV = 0
@@ -74,6 +75,7 @@ class Data:
                  'trigger_mode_2_b' : self.trigger_mode_2_b,
                  'fe_delay' : self.fe_delay,
                  'start temp' : self.start_temp,
+                 'run temp' : self.run_temp,
                  'end temp' : self.end_temp,
                  'BDV' : self.BDV,
                  'OV' : self.OV,
