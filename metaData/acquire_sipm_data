@@ -17,7 +17,7 @@ parser.add_argument("--mode", type=str, required=True, choices=["tot", "qdc", "m
 parser.add_argument("--enable-hw-trigger", dest="hwTrigger", action="store_true", help="Enable the hardware coincidence filter")
 parser.add_argument("--param-table", type=str, dest="paramTable", help="Table containing the name and values of 1 or 2 parameters to be scanned during data acquisition. Allowed parameters are: OV (SIPM Overvoltage), vth_t1 (t1 discriminator threshold, in DAC units relative to the channel baseline), vth_t2 (t2 discriminator threshold, in DAC units relative to the channel baseline), vth_e (e discriminator threshold, in DAC units relative to the channel baseline), disc_lsb_t1 (t1 discriminator DAC LSB)")
 parser.add_argument("--run", type=float, help="Run number")
-parser.add_argument("--tempInterval", type=float, narg='?',default=300,help="The interval of time in seconds between temperature readings during the data run (defaults to 300)")
+parser.add_argument("--tempInterval", type=float, nargs='?',default=300,help="The interval of time in seconds between temperature readings during the data run (defaults to 300)")
 
 args = parser.parse_args()
 
