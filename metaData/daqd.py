@@ -1127,7 +1127,6 @@ class Connection:
                         
                 frameLength = 1024.0 / self.__systemFrequency
                 nRequiredFrames = int(acquisitionTime / frameLength)
-                #tempIntervalFrames = int(tempInterval / frameLength) # Wilf; June 2022
 
                 template1 = "@ffIIi"
                 template2 = "@I"
@@ -1149,7 +1148,7 @@ class Connection:
                 currentFrame = startFrame
                 nFrames = 0
                 lastUpdateFrame = currentFrame
-                lastTempFrame = currentFrame
+                lastTempFrame = currentFrame ##### Wilf; June 2022
                 # get list of temp sensors
                 sensor_list = fe_temperature.get_sensor_list(self)
 
@@ -1198,10 +1197,10 @@ class Connection:
                         nFrames = currentFrame - startFrame + 1
                         nBlocks += 1
                         ##### ADDED BY WILF; JUNE 2022
-                        if (currentFrame - lastTempFrame) * frameLength > tempInterval:
+                        if (tempInterval > 0) and ((currentFrame - lastTempFrame) * frameLength > tempInterval):
                                 t1 = time()
                                 # read temp sensors
-                                print('Taking temp reading')
+                                #print('Taking temp reading')
                                 for sensor in sensor_list:
                                     portID, slaveID, moduleID, subModuleID, kind = sensor.get_location()
                                     location = str(portID)+"_"+str(moduleID)+"_"+str(subModuleID)+"_"+kind
