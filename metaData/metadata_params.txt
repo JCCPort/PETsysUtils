@@ -8,12 +8,14 @@
   'run time': requested duration of data-taking,
   'mode' : data-taking mode (QDC, TOT or mixed),
   'hwTrigger' : {
-	'triggerOn' : if the hardware trigger was used or not,
-	'type' : type of trigger (only option is 'builtin'),
-	'threshold' : hw trigger raw energy threhold in DAC units (only works in QDC mode),
-	'pre_window' : pre-event time window in units of clock periods
-	'post_window' : post-event time window in units of clock periods
-	'coincidence_window' : the time window to consider to events in coincidence; units of clock periods
+    'triggerOn' : if the hardware trigger was used or not,
+    'type' : type of trigger (only option is 'builtin'),
+    'threshold' : hw trigger raw energy threhold in DAC units (only works in
+      QDC mode),
+    'pre_window' : pre-event time window in units of clock periods,
+    'post_window' : post-event time window in units of clock periods,
+    'coincidence_window' : the time window to consider to events in
+      coincidence; units of clock periods
   },
   'trigger_mode_1' : settings for t1 threshold trigger,
   'trigger_mode_2_t' : settings for first time stamp,
@@ -22,7 +24,11 @@
   'trigger_mode_2_b' : settings for integration end,
   'fe_delay' : delay line settings,
   'start temp' : the temperature measured at the start of the run. The sensor
-names are formatted "portID_slaveID_chipID_sensorLocation",
+    names are formatted "portID_slaveID_chipID_sensorLocation",
+  'run temp': temperature readings taken throughout the run. Sorted by sensor
+    type. Each sensor has a list with two value entries. The first value is the
+    time of the temp reading within the run in seconds. The second value is the
+    temp reading,
   'end temp' : the temperature measured at the end of the run,
   'BDV' : breakdown voltage,
   'OV' : over voltage,
@@ -35,5 +41,5 @@ names are formatted "portID_slaveID_chipID_sensorLocation",
   'step2 parameter' : the parameter scanned using step2,
   'step2' : step2 values,
   'status' : whether the run completed or not. If the was an error or ctrl-c
-  was used this will say 'INCOMPLETE'
+    was used this will say 'INCOMPLETE'
 }
