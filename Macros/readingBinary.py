@@ -3,12 +3,10 @@ import pandas as pd
 import argparse
 
 # parse arguments
-parser = argparse.ArgumentParser( \
-    description='Read petsys binary files')
-parser.add_argument("-s", dest='signalName', type=str, required=True, \
-                    help='Prefix filename of signal binary file')
-parser.add_argument("-b", dest='bkgdName', type=str, required=True, \
-                    help='Prefix filename of background binary file')
+parser = argparse.ArgumentParser(description='Read petsys binary files')
+
+parser.add_argument("-s", dest='signalName', type=str, required=True, help='Prefix filename of signal binary file')
+parser.add_argument("-b", dest='bkgdName', type=str, required=True, help='Prefix filename of background binary file')
 
 args = parser.parse_args()
 
@@ -27,4 +25,3 @@ dataBkgd = pd.DataFrame(dataB)
 # extract energy data
 energySignal = dataSignal['energy']
 energyBkgd = dataBkgd['energy']
-
