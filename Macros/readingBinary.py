@@ -38,11 +38,11 @@ energySignal = dataSignal['energy']
 energyBkgd = dataBkgd['energy']
 
 # make histograms
-histS, edgesS = np.histogram(energySignal, bins=np.linspace(0,50,300))
+histS, edgesS = np.histogram(energySignal, bins=np.linspace(0,50,200))
 leftEdgesS = edgesS[:-1]
 width = 1*(leftEdgesS[1] - leftEdgesS[0])
 
-histB, edgesB = np.histogram(energyBkgd, bins=np.linspace(0,50,300))
+histB, edgesB = np.histogram(energyBkgd, bins=np.linspace(0,50,200))
 leftEdgesB = edgesB[:-1]
 
 # subtract histograms
