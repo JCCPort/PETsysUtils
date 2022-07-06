@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import argparse
+import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser(description='Read petsys binary files')
 
@@ -36,6 +37,28 @@ if args.channel:
 energySignal = dataSignal['energy']
 energyBkgd = dataBkgd['energy']
 
-plt.hist(dataSignal['energy'], bins=args.bins)
-plt.xlim(args.range)
+# make histograms
+histS, edgesS = np.histogram(energySignal, bins=np.linspace(0,50,300))
+leftEdgesS = edgesS[:-1]
+width = 1*(leftEdgesS[1] - leftEdgesS[0])
+
+histB, edgesB = np.histogram(energyBkgd, bins=np.linspace(0,50,300))
+leftEdgesB = edgesB[:-1]
+
+# subtract histograms
+histSub = histS - histB
+
+plt.bar(leftEdgesS, histSub, align='edge',width=width)
+plt.title("Background subtracted")
 plt.show()
+
+plt.bar(leftEdgesS, histS, align='edge', width=width)
+plt.title("Source-in")
+plt.show()
+
+plt.bar(leftEdgesB, histB)
+plt.title("Background")
+plt.show()
+print(len(energySignal))
+print(len(energyBkgd))
+
