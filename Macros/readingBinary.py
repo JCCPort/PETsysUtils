@@ -7,6 +7,8 @@ parser = argparse.ArgumentParser(description='Read petsys binary files')
 
 parser.add_argument("-s", dest='signalName', type=str, required=True, help='Prefix filename of signal binary file')
 parser.add_argument("-b", dest='bkgdName', type=str, required=True, help='Prefix filename of background binary file')
+parser.add_argument("--channel", dest='channel', type=int,
+                    help='Channel to look at. If not included, all channels will be plotted')
 
 args = parser.parse_args()
 
@@ -22,6 +24,13 @@ dtB = np.dtype([('time', np.int64), ('energy', np.float32), ('channelID', np.int
 dataB = np.fromfile(bFile, dtype=dtB)
 dataBkgd = pd.DataFrame(dataB)
 
+if args.channel:
+    dataSignal = dataSignal.loc[dataSignal['channelID'] == args.channel]
+    dataBkgd = pd.DataFrame(dataB)
+
 # extract energy data
+
 energySignal = dataSignal['energy']
 energyBkgd = dataBkgd['energy']
+
+print(energySignal)
