@@ -40,7 +40,6 @@ energyBkgd = dataBkgd['energy']
 # make histograms
 histS, edgesS = np.histogram(energySignal, bins=np.linspace(args.range[0], args.range[1], 300))
 leftEdgesS = edgesS[:-1]
-width = 1 * (leftEdgesS[1] - leftEdgesS[0])
 
 histB, edgesB = np.histogram(energyBkgd, bins=np.linspace(args.range[0], args.range[1], 300))
 leftEdgesB = edgesB[:-1]
@@ -48,16 +47,22 @@ leftEdgesB = edgesB[:-1]
 # subtract histograms
 histSub = histS - histB
 
-plt.bar(leftEdgesS, histSub, align='edge', width=width)
-plt.title("Background subtracted")
+plt.bar(leftEdgesS, histSub, align='edge', label="test")
+plt.title("Background Subtracted")
+plt.xlabel("Energy [a.u.]")
+plt.ylabel("Difference")
 plt.show()
 
-plt.bar(leftEdgesS, histS, align='edge', width=width)
+plt.bar(leftEdgesS, histS, align='edge')
 plt.title("Source-in")
+plt.xlabel("Energy [a.u.]")
+plt.ylabel("Counts")
 plt.show()
 
 plt.bar(leftEdgesB, histB)
 plt.title("Background")
+plt.xlabel("Energy [a.u.]")
+plt.ylabel("Counts")
 plt.show()
 print(len(energySignal))
 print(len(energyBkgd))
