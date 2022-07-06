@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
+import numpy as np
 import argparse
-import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser(description='Read petsys binary files')
 
@@ -10,10 +9,10 @@ parser.add_argument("-s", dest='signalName', type=str, required=True, help='Pref
 parser.add_argument("-b", dest='bkgdName', type=str, required=True, help='Prefix filename of background binary file')
 parser.add_argument("--channel", dest='channel', type=int,
                     help='Channel to look at. If not included, all channels will be plotted')
-parser.add_argument("--range", dest='range', type=float, nargs='*', default=[-10, 500],
-                    help='Range to plot over. If not included, will plot between [-10, 500]')
-parser.add_argument("--bins", dest='bins', type=float, nargs='*', default=10000,
-                    help='Number of bins. If not included bins=10000')
+parser.add_argument('--range', dest='range', help='Range to plot over. If not included, will plot between [-10, 60]',
+                    default=[-10, 60], type=lambda s: [int(item) for item in s.split(',')])
+parser.add_argument("--bins", dest='bins', type=float, nargs='*', default=100,
+                    help='Number of bins. If not included bins=100')
 
 args = parser.parse_args()
 
@@ -39,11 +38,11 @@ energySignal = dataSignal['energy']
 energyBkgd = dataBkgd['energy']
 
 # make histograms
-histS, edgesS = np.histogram(energySignal, bins=np.linspace(0, 50, 300))
+histS, edgesS = np.histogram(energySignal, bins=np.linspace(args.range[0], args.range[1], 300))
 leftEdgesS = edgesS[:-1]
 width = 1 * (leftEdgesS[1] - leftEdgesS[0])
 
-histB, edgesB = np.histogram(energyBkgd, bins=np.linspace(0, 50, 300))
+histB, edgesB = np.histogram(energyBkgd, bins=np.linspace(args.range[0], args.range[1], 300))
 leftEdgesB = edgesB[:-1]
 
 # subtract histograms
