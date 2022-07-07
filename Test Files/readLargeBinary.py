@@ -1,3 +1,6 @@
+""" This works fine for certain sizes, but does not fulfill it's intended purpose """
+# Todo(Jess): Get this working?
+
 import pandas as pd
 import numpy as np
 import argparse
@@ -36,7 +39,7 @@ for piece in read_in_chunks(f):
             oneEvent.append(piece[i][j])
         data.append(oneEvent)
     count += 1
-    print(count)
+    print("Chunk {} Loaded".format(count))
 f.close()
 
 data = pd.DataFrame(data, columns=['time', 'energy', 'channelID'])
