@@ -11,7 +11,7 @@ parser.add_argument("--channel", dest='channel', type=int,
                     help='Channel to look at. If not included, all channels will be plotted')
 parser.add_argument('--range', dest='range', help='Range to plot over. If not included, will plot between [-10, 60]',
                     default=[-10, 60], type=lambda s: [int(item) for item in s.split(',')])
-parser.add_argument("--bins", dest='bins', type=float, nargs='*', default=100,
+parser.add_argument("--bins", dest='bins', type=int, default=300,
                     help='Number of bins. If not included bins=100')
 
 args = parser.parse_args()
@@ -38,10 +38,10 @@ energySignal = dataSignal['energy']
 energyBkgd = dataBkgd['energy']
 
 # make histograms
-histS, edgesS = np.histogram(energySignal, bins=np.linspace(args.range[0], args.range[1], 300))
+histS, edgesS = np.histogram(energySignal, bins=np.linspace(args.range[0], args.range[1], args.bins))
 leftEdgesS = edgesS[:-1]
 
-histB, edgesB = np.histogram(energyBkgd, bins=np.linspace(args.range[0], args.range[1], 300))
+histB, edgesB = np.histogram(energyBkgd, bins=np.linspace(args.range[0], args.range[1], args.bins))
 leftEdgesB = edgesB[:-1]
 
 # subtract histograms
@@ -66,3 +66,4 @@ plt.ylabel("Counts")
 plt.show()
 print(len(energySignal))
 print(len(energyBkgd))
+print(args.range)
