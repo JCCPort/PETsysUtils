@@ -11,7 +11,7 @@ parser.add_argument("--channel", dest='channel', type=int,
                     help='Channel to look at. If not included, all channels will be plotted')
 parser.add_argument('--range', dest='range', help='Range to plot over. If not included, will plot between [-10, 60]',
                     default=[-10, 40], type=lambda s: [int(item) for item in s.split(',')])
-parser.add_argument("--bins", dest='bins', type=float, nargs='*', default=100,
+parser.add_argument("--bins", dest='bins', type=int, default=300,
                     help='Number of bins. If not included bins=100')
 
 args = parser.parse_args()
