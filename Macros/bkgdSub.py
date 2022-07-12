@@ -10,7 +10,7 @@ parser.add_argument("-b", dest='bkgdName', type=str, required=True, help='Prefix
 parser.add_argument("--channel", dest='channel', type=int,
                     help='Channel to look at. If not included, all channels will be plotted')
 parser.add_argument('--range', dest='range', help='Range to plot over. If not included, will plot between [-10, 60]',
-                    default=[-10, 60], type=lambda s: [int(item) for item in s.split(',')])
+                    default=[-10, 40], type=lambda s: [int(item) for item in s.split(',')])
 parser.add_argument("--bins", dest='bins', type=int, default=300,
                     help='Number of bins. If not included bins=100')
 
@@ -50,7 +50,7 @@ histSub = histS - histB
 plt.bar(leftEdgesS, histSub, align='edge', label="test")
 plt.title("Background Subtracted")
 plt.xlabel("Energy [a.u.]")
-plt.ylabel("Difference")
+plt.ylabel("Counts")
 plt.show()
 
 plt.bar(leftEdgesS, histS, align='edge')
@@ -66,4 +66,4 @@ plt.ylabel("Counts")
 plt.show()
 print(len(energySignal))
 print(len(energyBkgd))
-print(args.range)
+print(len(histB))
