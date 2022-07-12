@@ -9,10 +9,10 @@ parser.add_argument("-s", dest='signalName', type=str, required=True, help='Pref
 parser.add_argument("-b", dest='bkgdName', type=str, required=True, help='Prefix filename of background binary file')
 parser.add_argument('--range', dest='range', help='Range to plot over. If not included, will plot between [-10, 60]',
                     default=[0, 40], type=lambda s: [int(item) for item in s.split(',')])
-parser.add_argument('--rangeSum', dest='rangeSum', help='Range to plot over. If not included, will plot between [-10, 60]',
-                    default=[0, 70], type=lambda s: [int(item) for item in s.split(',')])
+parser.add_argument('--rangeSum', dest='rangeSum', help='Range to plot over. Default is [-5, 70]',
+                    default=[-5, 70], type=lambda s: [int(item) for item in s.split(',')])
 parser.add_argument("--bins", dest='bins', type=float, nargs='*', default=90,
-                            help='Number of bins. If not included bins=100')
+                    help='Number of bins. If not included bins=100')
 parser.add_argument("--binsSum", dest='binsSum', type=float, nargs='*', default=90,
                     help='Number of bins. If not included bins=100')
 args = parser.parse_args()
@@ -55,6 +55,7 @@ for i in range(len(energyBkgd1)):
 histSigSum, edgesSum = np.histogram(energySignalSum, bins=np.linspace(args.rangeSum[0], args.rangeSum[1], args.binsSum))
 histS1, edges = np.histogram(energySignal1, bins=np.linspace(args.range[0], args.range[1], args.bins))
 histS2, edges = np.histogram(energySignal2, bins=np.linspace(args.range[0], args.range[1], args.bins))
+
 histBkgdSum, edgesSum = np.histogram(energyBkgdSum, bins=np.linspace(args.rangeSum[0], args.rangeSum[1], args.binsSum))
 histB1, edges = np.histogram(energyBkgd1, bins=np.linspace(args.range[0], args.range[1], args.bins))
 histB2, edges = np.histogram(energyBkgd2, bins=np.linspace(args.range[0], args.range[1], args.bins))
@@ -120,5 +121,3 @@ plt.title("Background: Lower energy events")
 plt.xlabel("Energy [a.u.]")
 plt.ylabel("Counts")
 plt.show()
-
-
