@@ -1,8 +1,12 @@
+""" Energy distribution background subtraction script for PETsys singles binary files
+ Written by E. Bannister and J. Lock at University of Sussex July 2022 """
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import argparse
 
+# read in arguments
 parser = argparse.ArgumentParser(description='Read petsys binary files')
 
 parser.add_argument("-s", dest='signalName', type=str, required=True, help='Prefix filename of signal binary file')
@@ -47,6 +51,7 @@ leftEdgesB = edgesB[:-1]
 # subtract histograms
 histSub = histS - histB
 
+# format histograms
 plt.bar(leftEdgesS, histSub, align='edge', label="test")
 plt.title("Background Subtracted")
 plt.xlabel("Energy [a.u.]")

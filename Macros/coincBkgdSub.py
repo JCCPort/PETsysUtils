@@ -1,8 +1,12 @@
+""" Energy distribution background subtraction script for PETsys coincidence binary files
+ Written by E. Bannister at University of Sussex July 2022 """
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import argparse
 
+# read in arguments
 parser = argparse.ArgumentParser(description='Read petsys binary files')
 
 parser.add_argument("-s", dest='signalName', type=str, required=True, help='Prefix filename of signal binary file')
@@ -68,6 +72,7 @@ histSubSum = histSigSum - histBkgdSum
 histSub1 = histS1 - histB1
 histSub2 = histS2 - histB2
 
+# format histograms
 plt.bar(leftEdgesSum, histSigSum, align='edge', label="test")
 plt.title("Source-in: Sum")
 plt.xlabel("Sum of energy [a.u.]")
