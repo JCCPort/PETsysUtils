@@ -19,15 +19,13 @@ parser.add_argument("-m",dest='mappingFile',type=str,required=True,\
 parser.add_argument('--channel',type=int,\
     help='Channel to plot the energy distribution of. \
         If not included all channels will be plotted')
-parser.add_argument('--step1',type=float,nargs='?',const=None,\
-    help='Value of step1 to plot. \
+parser.add_argument('--step1',type=float,help='Value of step1 to plot. \
         If not included all step1 values will be plotted')
-parser.add_argument('--step2',type=float,nargs='?',const=None,\
-    help='Value of step2 to plot. \
+parser.add_argument('--step2',type=float,help='Value of step2 to plot. \
         If not included all step2 values will be plotted')
-parser.add_argument('--step1Title',type=str,nargs='?',default="Step1",\
+parser.add_argument('--step1Title',type=str,default="Step1",\
     help='Title of step1 parameter')
-parser.add_argument('--step2Title',type=str,nargs='?',default="Step2",\
+parser.add_argument('--step2Title',type=str,default="Step2",\
     help='Title of step2 parameter')
 args = parser.parse_args()
 
