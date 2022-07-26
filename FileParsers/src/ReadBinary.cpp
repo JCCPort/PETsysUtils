@@ -42,7 +42,7 @@ std::vector<Event> parseEvents(const std::string& path, long long windowSize, in
 			}
 
 
-			if((prevTime - single_.time) > 1000){
+			if((prevTime - single_.time) > 1){
 				std::cout << prevTime << "\t" << single_.time << std::endl;
 				std::cout << "OH GOD NO THE TIMES AREN'T SORTED\n" << std::endl;
 			}
@@ -58,5 +58,5 @@ std::vector<Event> parseEvents(const std::string& path, long long windowSize, in
 }
 
 int main(){
-	parseEvents("/home/josh/PETsysUtils/run5_LED_qdc_single.ldat", 3000000, 2);
+	parseEvents("/home/josh/PETsysUtils/run3_Na22_QDC_20-20-15_single.ldatsorted", 3000000, 2);
 }
