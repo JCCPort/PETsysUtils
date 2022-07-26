@@ -22,7 +22,7 @@ std::vector<Event> parseEvents(const std::string& path, long long windowSize, in
 		Event event_;
 		while (dataFile.read((char *) (&single_), sizeof(single_)))
 		{
-			timesInWindow.push_back(single_.time); // Keep updating with newest time
+			timesInWindow.push_back(single_.time); // Keep updating with the newest time
 			hitsInWindow.push_back(single_);
 
 			if((single_.time - timesInWindow[0]) > windowSize){  // Check if the distance between the first and the latest entry is greater than the window size
@@ -34,6 +34,8 @@ std::vector<Event> parseEvents(const std::string& path, long long windowSize, in
 				if((single_.time - timesInWindow[0]) > windowSize){  // Keep looking to add hits until you get to the window length
 					event_.eventNumber = evNum;
 					event_.hits = hitsInWindow;
+
+					// Empty these vectors now that a group is going to be written
 					timesInWindow.clear();
 					hitsInWindow.clear();
 

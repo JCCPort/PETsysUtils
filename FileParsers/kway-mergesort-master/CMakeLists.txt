@@ -1,0 +1,18 @@
+project(sort)
+cmake_minimum_required(VERSION 3.23)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_C_FLAGS "-O0 -pthread -DISDEBUG")
+    set(CMAKE_CXX_FLAGS "-O0 -pthread -DISDEBUG")
+    set(ISDEBUG)
+elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CMAKE_C_FLAGS "-O3 -pthread -flto")
+    set(CMAKE_CXX_FLAGS "-O3 -pthread -flto")
+    #    set(ISDEBUG 0)
+elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set(CMAKE_C_FLAGS "-O2 -pthread -fprofile-arcs -DISDEBUG")
+    set(CMAKE_CXX_FLAGS "-O2 -pthread -fprofile-arcs -DISDEBUG")
+    set(ISDEBUG)
+endif ()
+
+add_executable(sort TestMergeCustomStruct.cpp)
