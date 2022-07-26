@@ -28,9 +28,9 @@ struct single {
         else if (s.time > b.s.time) {
 			return false ;
 		}
-		else{
-			return false;
-		}
+//		else{
+//			return false;
+//		}
 
     }
     
@@ -53,7 +53,7 @@ struct single {
 bool bySize(single const &a, single const &b) {
 	if      (a.s.time < b.s.time)  return true;
 	else if (a.s.time > b.s.time)  return false;
-	else {return false;}
+//	else {return false;}
 }
 
 
@@ -66,17 +66,17 @@ int main(int argc, char* argv[]) {
     string tempPath     = "./";        // allows you to write the intermediate files anywhere you want.
     
     // sort a single file by chrom then start
-    KwayMergeSort<single> *bed_sorter = new KwayMergeSort<single> (inFile,
-                                                                   &cout,
-                                                                   bufferSize,
-                                                                   compressOutput,
-                                                                   tempPath);
-                                                            
-    cout << "First sort by chrom, then start using the overloaded \"<\" operator\n";
-    bed_sorter->Sort();
-    cout << "Now, sort by size using a custom function (bySize)\n";
-    bed_sorter->SetComparison(bySize);
-    bed_sorter->Sort();
+//    KwayMergeSort<single> *bed_sorter = new KwayMergeSort<single> (inFile,
+//                                                                   &cout,
+//                                                                   bufferSize,
+//                                                                   compressOutput,
+//                                                                   tempPath);
+//
+////    cout << "First sort by chrom, then start using the overloaded \"<\" operator\n";
+////    bed_sorter->Sort();
+//    cout << "Now, sort by size using a custom function (bySize)\n";
+//    bed_sorter->SetComparison(bySize);
+//    bed_sorter->Sort();
 
 	ofstream myfile (inFile + "sorted");
 
@@ -87,6 +87,7 @@ int main(int argc, char* argv[]) {
                                                                           bufferSize,
                                                                           compressOutput,
                                                                           tempPath);
+	bed_sorter_custom->SetComparison(bySize);
     cout << "Now create a new class with bySize() as the custom sort function\n";
     bed_sorter_custom->Sort();
 	myfile.close();

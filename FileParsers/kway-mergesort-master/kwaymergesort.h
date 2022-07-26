@@ -270,11 +270,11 @@ void KwayMergeSort<T>::WriteToTempFile(const vector<T> &lineBuffer) {
     //if (_compressOutput == true)
         //output = new ogzstream(tempFileName.c_str(), ios::out);
     //else
-    output = new ofstream(tempFileName.c_str(), ios::out);
+    output = new ofstream(tempFileName.c_str(), ios::binary);
 
     // write the contents of the current buffer to the temp file
     for (size_t i = 0; i < lineBuffer.size(); ++i) {
-        *output << lineBuffer[i] << endl;
+        *output << lineBuffer[i];
     }
 
     // update the tempFile number and add the tempFile to the list of tempFiles
@@ -299,7 +299,7 @@ void KwayMergeSort<T>::Merge() {
     // we can skip this step if there are no temp files to
     // merge.  That is, the entire inout file fit in memory
     // and thus we just dumped to stdout.
-    if (_tempFileUsed == false)
+    if (!_tempFileUsed)
         return;
 
     // open the sorted temp files up for merging.
@@ -311,9 +311,9 @@ void KwayMergeSort<T>::Merge() {
 
     // extract the first line from each temp file
     T line;
-    for (size_t i = 0; i < _vTempFiles.size(); ++i) {
-        *_vTempFiles[i] >> line;
-        outQueue.push( MERGE_DATA<T>(line, _vTempFiles[i], _compareFunction) );
+    for (auto & _vTempFile : _vTempFiles) {
+        *_vTempFile >> line;
+        outQueue.push( MERGE_DATA<T>(line, _vTempFile, _compareFunction) );
     }
 
     // keep working until the queue is empty
@@ -321,7 +321,7 @@ void KwayMergeSort<T>::Merge() {
         // grab the lowest element, print it, then ditch it.
         MERGE_DATA<T> lowest = outQueue.top();
         // write the entry from the top of the queue
-        *_out << lowest.data << endl;
+        *_out << lowest.data;
         // remove this record from the queue
         outQueue.pop();
         // add the next line from the lowest stream (above) to the queue
