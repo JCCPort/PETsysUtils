@@ -3,7 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <math.h>
+#include <cmath>
 using namespace std;
 
 // local includes
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
 	ofstream myfile (inFile + "sorted");
 
     // sort a single file by chrom then start
-    KwayMergeSort<single> *bed_sorter_custom = new KwayMergeSort<single> (inFile,
+    auto *bed_sorter_custom = new KwayMergeSort<single> (inFile,
                                                                           &myfile,
                                                                           bySize,
                                                                           bufferSize,

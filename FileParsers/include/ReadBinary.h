@@ -5,5 +5,5 @@
 #include <string>
 #include "DataStructures.h"
 
-std::vector<Event> parseEvents(const std::string& path, long long windowSize, int numHitsCoincidence);
+std::vector<SinglesWGroup> parseEvents(const std::string& path, long long windowSize, int numHitsCoincidence);
 #endif //PETSYSPARSERS_READBINARY_H

@@ -9,6 +9,13 @@ struct Singles{
 	int channel;
 };
 
+struct SinglesWGroup{
+	long long time;
+	float energy;
+	int channel;
+	int group;
+};
+
 struct Event{
 	unsigned int eventNumber;
 	std::vector<Singles> hits;

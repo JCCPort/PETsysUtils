@@ -5,48 +5,50 @@
 #include <iostream>
 #include "../include/DataStructures.h"
 
-std::vector<Event> parseEvents(const std::string& path, long long windowSize, int numHitsCoincidence){
+std::vector<SinglesWGroup> parseEvents(const std::string &path, long long windowSize, int numHitsCoincidence) {
 	// TODO(josh): Group by channels or by hits
 	std::string line;
 	std::ifstream dataFile(path);
 
-	std::vector<Event> events;
+	std::vector<SinglesWGroup> events;
 	Singles single_{};
-	if (dataFile.is_open())
-	{
+	if (dataFile.is_open()) {
 		long long prevTime = 0;
-		unsigned int evNum = 0;
+		int evNum = 0;
 		std::vector<long long> timesInWindow;
 		std::vector<Singles> hitsInWindow;
 
-		Event event_;
-		while (dataFile.read((char *) (&single_), sizeof(single_)))
-		{
+		SinglesWGroup event_{};
+		while (dataFile.read((char *) (&single_), sizeof(single_))) {
 			timesInWindow.push_back(single_.time); // Keep updating with the newest time
 			hitsInWindow.push_back(single_);
 
-			if((single_.time - timesInWindow[0]) > windowSize){  // Check if the distance between the first and the latest entry is greater than the window size
+			if ((single_.time - timesInWindow[0]) >
+			    windowSize) {  // Check if the distance between the first and the latest entry is greater than the window size
 				timesInWindow.erase(timesInWindow.begin());
 				hitsInWindow.erase(hitsInWindow.begin());
 			}
 
-			if(timesInWindow.size() >= numHitsCoincidence){
-				if((single_.time - timesInWindow[0]) > windowSize){  // Keep looking to add hits until you get to the window length
-					event_.eventNumber = evNum;
-					event_.hits = hitsInWindow;
+			if (timesInWindow.size() >= numHitsCoincidence) {
+				if ((single_.time - timesInWindow[0]) > windowSize) {  // Keep looking to add hits until you get to the window length
+					for(auto & k : hitsInWindow) {
+						event_.time = k.time;
+						event_.energy = k.energy;
+						event_.channel = k.channel;
+						event_.group = evNum;
+						events.push_back(event_);
+					}
 
 					// Empty these vectors now that a group is going to be written
 					timesInWindow.clear();
 					hitsInWindow.clear();
-
-					events.push_back(event_);
 
 					evNum++;
 				}
 			}
 
 
-			if((prevTime > single_.time)){
+			if ((prevTime > single_.time)) {
 				std::cout << prevTime << "\t" << single_.time << std::endl;
 				std::cout << "OH GOD NO THE TIMES AREN'T SORTED\n" << std::endl;
 			}
@@ -58,9 +60,35 @@ std::vector<Event> parseEvents(const std::string& path, long long windowSize, in
 	}
 
 	return events;
-
 }
 
-int main(){
-	parseEvents("/home/josh/PETsysUtils/run5_LED_qdc_single.ldatsorted", 100000, 2);
+enum FileType{
+	Binary = 0,
+	Ascii = 1,
+	rEWt = 2
+};
+
+int writeEvents(const std::vector<SinglesWGroup>& events, FileType type, const std::string& name){
+	std::ofstream outFile (name);
+	switch (type) {
+
+		case Binary:
+			for (const auto & event : events) {
+				outFile.write(reinterpret_cast<const char *>(&event), sizeof(SinglesWGroup));
+			}
+			outFile.close();
+			break;
+		case Ascii:
+			break;
+		case rEWt:
+			break;
+	}
+	return 0;
+}
+
+int main(int argc, char* argv[]) {
+	std::string fileName = argv[1];
+	std::string outputName = fileName.substr(0, fileName.find('.')) + "_grouped" + fileName.substr(fileName.find('.'), fileName.size());
+	auto events = parseEvents(fileName, 100000, 2);
+	writeEvents(events, Binary, outputName);
 }
