@@ -25,20 +25,22 @@ std::vector<Event> parseEvents(const std::string& path, long long windowSize, in
 			timesInWindow.push_back(single_.time); // Keep updating with newest time
 			hitsInWindow.push_back(single_);
 
-			if((single_.time - timesInWindow[0]) > windowSize){ // Check if the first
+			if((single_.time - timesInWindow[0]) > windowSize){  // Check if the distance between the first and the latest entry is greater than the window size
 				timesInWindow.erase(timesInWindow.begin());
 				hitsInWindow.erase(hitsInWindow.begin());
 			}
 
 			if(timesInWindow.size() >= numHitsCoincidence){
-				event_.eventNumber = evNum;
-				event_.hits = hitsInWindow;
-				timesInWindow.clear();
-				hitsInWindow.clear();
+				if((single_.time - timesInWindow[0]) > windowSize){  // Keep looking to add hits until you get to the window length
+					event_.eventNumber = evNum;
+					event_.hits = hitsInWindow;
+					timesInWindow.clear();
+					hitsInWindow.clear();
 
-				events.push_back(event_);
+					events.push_back(event_);
 
-				evNum++;
+					evNum++;
+				}
 			}
 
 
@@ -58,5 +60,5 @@ std::vector<Event> parseEvents(const std::string& path, long long windowSize, in
 }
 
 int main(){
-	parseEvents("/home/josh/PETsysUtils/run5_LED_qdc_single.ldatsorted", 3000000, 2);
+	parseEvents("/home/josh/PETsysUtils/run5_LED_qdc_single.ldatsorted", 100000, 2);
 }
