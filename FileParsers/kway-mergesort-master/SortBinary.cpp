@@ -64,21 +64,10 @@ int main(int argc, char* argv[]) {
                                        // once full, it will dump to a temp file and grab another chunk.     
     bool compressOutput = false;       // not yet supported
     string tempPath     = "./";        // allows you to write the intermediate files anywhere you want.
-    
-    // sort a single file by chrom then start
-//    KwayMergeSort<single> *bed_sorter = new KwayMergeSort<single> (inFile,
-//                                                                   &cout,
-//                                                                   bufferSize,
-//                                                                   compressOutput,
-//                                                                   tempPath);
-//
-////    cout << "First sort by chrom, then start using the overloaded \"<\" operator\n";
-////    bed_sorter->Sort();
-//    cout << "Now, sort by size using a custom function (bySize)\n";
-//    bed_sorter->SetComparison(bySize);
-//    bed_sorter->Sort();
 
-	ofstream myfile (inFile + "sorted");
+	std::string outputName = inFile.substr(0, inFile.find('.')) + "_sorted" + inFile.substr(inFile.find('.'), inFile.size());
+
+	ofstream myfile (outputName);
 
     // sort a single file by chrom then start
     auto *bed_sorter_custom = new KwayMergeSort<single> (inFile,
@@ -88,7 +77,6 @@ int main(int argc, char* argv[]) {
                                                                           compressOutput,
                                                                           tempPath);
 	bed_sorter_custom->SetComparison(bySize);
-    cout << "Now create a new class with bySize() as the custom sort function\n";
     bed_sorter_custom->Sort();
 	myfile.close();
 }

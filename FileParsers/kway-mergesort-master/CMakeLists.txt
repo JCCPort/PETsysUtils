@@ -15,4 +15,4 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     set(ISDEBUG)
 endif ()
 
-add_executable(sort TestMergeCustomStruct.cpp)
+add_executable(sort SortBinary.cpp)
