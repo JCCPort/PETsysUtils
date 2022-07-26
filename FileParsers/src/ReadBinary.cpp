@@ -62,11 +62,6 @@ std::vector<SinglesWGroup> parseEvents(const std::string &path, long long window
 	return events;
 }
 
-enum FileType{
-	Binary = 0,
-	Ascii = 1,
-	rEWt = 2
-};
 
 int writeEvents(const std::vector<SinglesWGroup>& events, FileType type, const std::string& name){
 	std::ofstream outFile (name);
