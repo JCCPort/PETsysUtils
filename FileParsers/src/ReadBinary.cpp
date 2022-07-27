@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 	long long windowSize = (long long)(std::stoi(argv[2]));
 	int majority = std::stoi(argv[3]);
 
-	std::string outputName = fileName.substr(0, fileName.find('.')) + "_grouped" + fileName.substr(fileName.find('.'), fileName.size());
+	std::string outputName = fileName.substr(0, fileName.find_last_of('.')) + "_grouped" + fileName.substr(fileName.find_last_of('.'), fileName.size());
 	auto events = parseEvents(fileName, windowSize, majority);
 	writeEvents(events, Binary, outputName);
 }

@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     bool compressOutput = false;       // not yet supported
     string tempPath     = "./";        // allows you to write the intermediate files anywhere you want.
 
-	std::string outputName = inFile.substr(0, inFile.find('.')) + "_sorted" + inFile.substr(inFile.find('.'), inFile.size());
+	std::string outputName = inFile.substr(0, inFile.find_last_of('.')) + "_sorted" + inFile.substr(inFile.find_last_of('.'), inFile.size());
 
 	ofstream outFile(outputName);
 
