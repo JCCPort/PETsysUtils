@@ -67,16 +67,16 @@ int main(int argc, char* argv[]) {
 
 	std::string outputName = inFile.substr(0, inFile.find('.')) + "_sorted" + inFile.substr(inFile.find('.'), inFile.size());
 
-	ofstream myfile (outputName);
+	ofstream outFile(outputName);
 
     // sort a single file by chrom then start
     auto *bed_sorter_custom = new KwayMergeSort<single> (inFile,
-                                                                          &myfile,
+                                                                          &outFile,
                                                                           bySize,
                                                                           bufferSize,
                                                                           compressOutput,
                                                                           tempPath);
 	bed_sorter_custom->SetComparison(bySize);
     bed_sorter_custom->Sort();
-	myfile.close();
+	outFile.close();
 }
