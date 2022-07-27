@@ -1,9 +1,11 @@
+import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 if __name__ == '__main__':
-    data = np.fromfile("/home/josh/PETsysUtils/run5_LED_qdc_single_sorted_grouped.ldat", dtype=[("time", np.longlong),
+    data = np.fromfile(sys.argv[0], dtype=[("time", np.longlong),
                                                                                                ("energy", np.single),
                                                                                                ("channel", np.intc),
                                                                                                ("group", np.int64)])
