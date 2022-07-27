@@ -83,7 +83,7 @@ int writeEvents(const std::vector<SinglesWGroup>& events, FileType type, const s
 
 int main(int argc, char* argv[]) {
 	std::string fileName = argv[1];
-	long long windowSize = std::strtoll(argv[2]);
+	long long windowSize = (long long)(std::stoi(argv[2]));
 	int majority = std::stoi(argv[3]);
 
 	std::string outputName = fileName.substr(0, fileName.find('.')) + "_grouped" + fileName.substr(fileName.find('.'), fileName.size());
