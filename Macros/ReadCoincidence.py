@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 if __name__ == '__main__':
-    data = np.fromfile(sys.argv[0], dtype=[("time", np.longlong),
+    data = np.fromfile(sys.argv[1], dtype=[("time", np.longlong),
                                                                                                ("energy", np.single),
                                                                                                ("channel", np.intc),
                                                                                                ("group", np.int64)])
