@@ -79,4 +79,6 @@ int main(int argc, char* argv[]) {
 	bed_sorter_custom->SetComparison(bySize);
     bed_sorter_custom->Sort();
 	outFile.close();
+
+	std::cout << "Sorted file. Output at:\t" << outputName << std::endl;
 }
