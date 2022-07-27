@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
     data = pd.DataFrame(data)
     groupSumEnergies = data.groupby('group')['energy'].sum().reset_index()['energy'].values
-    plt.hist(groupSumEnergies, bins=300, range=[935, 975], label="80 ns window, majority 2")
+    plt.hist(groupSumEnergies, bins=300, label="80 ns window, majority 2")
     # plt.xlim([0, 200])
     plt.ylabel("Counts")
     plt.xlabel("Sum energy")

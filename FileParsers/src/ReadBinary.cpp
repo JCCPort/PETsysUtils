@@ -78,6 +78,7 @@ int writeEvents(const std::vector<SinglesWGroup>& events, FileType type, const s
 		case rEWt:
 			break;
 	}
+
 	return 0;
 }
 
@@ -89,4 +90,5 @@ int main(int argc, char* argv[]) {
 	std::string outputName = fileName.substr(0, fileName.find_last_of('.')) + "_grouped" + fileName.substr(fileName.find_last_of('.'), fileName.size());
 	auto events = parseEvents(fileName, windowSize, majority);
 	writeEvents(events, Binary, outputName);
+	std::cout << "Found coincidences file. Output at:\t" << outputName << std::endl;
 }
