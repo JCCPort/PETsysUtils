@@ -24,6 +24,6 @@ message("${PROJECT_SOURCE_DIR}")
 
 ###########################
 
-add_subdirectory(kway-mergesort-master)
+add_executable(sort src/CoincidenceProcess.cpp)
 
-add_executable(CoincidenceProcess CoincidenceProcess.cpp ${sources} ${headers})
+add_executable(CoincidenceProcess src/CoincidenceProcess.cpp ${sources} ${headers})
