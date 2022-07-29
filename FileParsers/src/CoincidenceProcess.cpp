@@ -1,14 +1,11 @@
-#include "../include/ReadBinary.h"
 
-#include <string>
-#include <fstream>
-#include <iostream>
-#include "../include/DataStructures.h"
+#include "../include/CoincidenceProcess.h"
 
-std::vector<SinglesWGroup> parseEvents(const std::string &path, long long windowSize, int numHitsCoincidence) {
+
+std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long windowSize, int numHitsCoincidence) {
 	// TODO(josh): Group by channels or by hits
 	std::string line;
-	std::ifstream dataFile(path);
+	std::ifstream dataFile(inputPath);
 
 	std::vector<SinglesWGroup> events;
 	Singles single_{};
@@ -23,8 +20,7 @@ std::vector<SinglesWGroup> parseEvents(const std::string &path, long long window
 			timesInWindow.push_back(single_.time); // Keep updating with the newest time
 			hitsInWindow.push_back(single_);
 
-			if ((single_.time - timesInWindow[0]) >
-			    windowSize) {  // Check if the distance between the first and the latest entry is greater than the window size
+			if ((single_.time - timesInWindow[0]) > windowSize) {  // Check if the distance between the first and the latest entry is greater than the window size
 				timesInWindow.erase(timesInWindow.begin());
 				hitsInWindow.erase(hitsInWindow.begin());
 			}
@@ -62,6 +58,11 @@ std::vector<SinglesWGroup> parseEvents(const std::string &path, long long window
 	return events;
 }
 
+bool bySize(single const &a, single const &b) {
+	if      (a.s.time < b.s.time)  return true;
+	else if (a.s.time > b.s.time)  return false;
+	else {return false;}
+}
 
 int writeEvents(const std::vector<SinglesWGroup>& events, FileType type, const std::string& name){
 	std::ofstream outFile (name);
@@ -82,13 +83,45 @@ int writeEvents(const std::vector<SinglesWGroup>& events, FileType type, const s
 	return 0;
 }
 
+bool single::operator<(const single &b) const {
+		if (s.time < b.s.time){
+			return true;
+		}
+		else if (s.time > b.s.time) {
+			return false ;
+		}
+		else{
+			return false;
+		}
+}
+
 int main(int argc, char* argv[]) {
+
 	std::string fileName = argv[1];
 	long long windowSize = (long long)(std::stoi(argv[2]));
 	int majority = std::stoi(argv[3]);
 
+	int  bufferSize     = 100000000;
+	bool compressOutput = false;
+	std::string tempPath     = "./";
+
+
 	std::string outputName = fileName.substr(0, fileName.find_last_of('.')) + "_grouped" + fileName.substr(fileName.find_last_of('.'), fileName.size());
-	auto events = parseEvents(fileName, windowSize, majority);
+	std::ofstream outFile(outputName);
+
+	// sort a single file by chrom then start
+	auto *bed_sorter_custom = new KwayMergeSort<single> (fileName,
+	                                                     &outFile,
+	                                                     bySize,
+	                                                     bufferSize,
+	                                                     compressOutput,
+	                                                     tempPath);
+	bed_sorter_custom->SetComparison(bySize);
+	bed_sorter_custom->Sort();
+	outFile.close();
+
+	auto events = parseEvents(outputName, windowSize, majority);
 	writeEvents(events, Binary, outputName);
-	std::cout << "Found coincidences file. Output at:\t" << outputName << std::endl;
+
+	std::cout << "Found coincidences. Output at:\t" << outputName << std::endl;
 }

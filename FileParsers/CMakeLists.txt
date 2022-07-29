@@ -21,8 +21,9 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh, ${PROJECT_SOURCE_DIR}/incl
 message("${sources}")
 message("${PROJECT_SOURCE_DIR}")
 
-add_executable(ReadBinary ${sources} ${headers})
 
 ###########################
 
-add_subdirectory(kway-mergesort-master)
+add_executable(sort src/CoincidenceProcess.cpp)
+
+add_executable(CoincidenceProcess src/CoincidenceProcess.cpp ${sources} ${headers})
