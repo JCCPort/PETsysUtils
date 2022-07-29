@@ -2,58 +2,57 @@
 #include "../include/CoincidenceProcess.h"
 
 
-std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long windowSize, int numHitsCoincidence) {
+std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long windowSize, int numHitsCoincidence, const std::vector<int>& includedChannels) {
 	// TODO(josh): Group by channels or by hits
-	std::string line;
 	std::ifstream dataFile(inputPath);
+	if (!dataFile.is_open()) {
+		std::cout << "Unable to open file";
+	}
 
 	std::vector<SinglesWGroup> events;
 	Singles single_{};
-	if (dataFile.is_open()) {
-		long long prevTime = 0;
-		int evNum = 0;
-		std::vector<long long> timesInWindow;
-		std::vector<Singles> hitsInWindow;
 
-		SinglesWGroup event_{};
-		while (dataFile.read((char *) (&single_), sizeof(single_))) {
-			timesInWindow.push_back(single_.time); // Keep updating with the newest time
-			hitsInWindow.push_back(single_);
+	long long prevTime = 0;
+	int evNum = 0;
+	std::vector<Singles> hitsInWindow;
 
-			if ((single_.time - timesInWindow[0]) > windowSize) {  // Check if the distance between the first and the latest entry is greater than the window size
-				timesInWindow.erase(timesInWindow.begin());
-				hitsInWindow.erase(hitsInWindow.begin());
-			}
-
-			if (timesInWindow.size() >= numHitsCoincidence) {
-				if ((single_.time - timesInWindow[0]) > windowSize) {  // Keep looking to add hits until you get to the window length
-					for(auto & k : hitsInWindow) {
-						event_.time = k.time;
-						event_.energy = k.energy;
-						event_.channel = k.channel;
-						event_.group = evNum;
-						events.push_back(event_);
-					}
-
-					// Empty these vectors now that a group is going to be written
-					timesInWindow.clear();
-					hitsInWindow.clear();
-
-					evNum++;
-				}
-			}
-
-
-			if ((prevTime > single_.time)) {
-				std::cout << prevTime << "\t" << single_.time << std::endl;
-				std::cout << "OH GOD NO THE TIMES AREN'T SORTED\n" << std::endl;
-			}
-			prevTime = single_.time;
+	SinglesWGroup event_{};
+	while (dataFile.read((char *) (&single_), sizeof(single_))) {
+		if (!(std::find(includedChannels.begin(), includedChannels.end(), single_.channel) != includedChannels.end())){
+			continue;
 		}
-		dataFile.close();
-	} else {
-		std::cout << "Unable to open file";
+
+		hitsInWindow.push_back(single_); // Keep updating with the most recent hit
+
+		if ((single_.time - hitsInWindow[0].time) > windowSize) {  // Check if the distance between the first and the latest entry is greater than the window size
+			hitsInWindow.erase(hitsInWindow.begin());
+		}
+
+		if (hitsInWindow.size() >= numHitsCoincidence) {
+			if ((single_.time - hitsInWindow[0].time) > windowSize) {  // Keep looking to add hits until you get to the window length
+				for(auto & k : hitsInWindow) {
+					event_.time = k.time;
+					event_.energy = k.energy;
+					event_.channel = k.channel;
+					event_.group = evNum;
+					events.push_back(event_);
+				}
+
+				// Empty these vectors now that a group is going to be written
+				hitsInWindow.clear();
+
+				evNum++;
+			}
+		}
+
+
+		if ((prevTime > single_.time)) {
+			std::cout << prevTime << "\t" << single_.time << std::endl;
+			std::cout << "OH GOD NO THE TIMES AREN'T SORTED\n" << std::endl;
+		}
+		prevTime = single_.time;
 	}
+	dataFile.close();
 
 	return events;
 }
@@ -95,32 +94,54 @@ bool single::operator<(const single &b) const {
 		}
 }
 
+std::vector<int> readChannels(const std::string& path){
+	std::ifstream inFile (path);
+	std::vector<int> allowedChannels;
+	std::string line;
+
+	while (inFile) {
+		inFile >> line;
+		allowedChannels.emplace_back(std::stoi(line));
+	}
+	return allowedChannels;
+}
+
 int main(int argc, char* argv[]) {
 
 	std::string fileName = argv[1];
 	long long windowSize = (long long)(std::stoi(argv[2]));
 	int majority = std::stoi(argv[3]);
+	std::string allowedChannelPath = argv[4];
+	bool sort = bool(std::stoi(argv[5]));
 
 	int  bufferSize     = 100000000;
 	bool compressOutput = false;
 	std::string tempPath     = "./";
 
+	std::vector<int> channels = readChannels(allowedChannelPath);
 
 	std::string outputName = fileName.substr(0, fileName.find_last_of('.')) + "_grouped" + fileName.substr(fileName.find_last_of('.'), fileName.size());
-	std::ofstream outFile(outputName);
 
-	// sort a single file by chrom then start
-	auto *bed_sorter_custom = new KwayMergeSort<single> (fileName,
-	                                                     &outFile,
-	                                                     bySize,
-	                                                     bufferSize,
-	                                                     compressOutput,
-	                                                     tempPath);
-	bed_sorter_custom->SetComparison(bySize);
-	bed_sorter_custom->Sort();
-	outFile.close();
+	if(sort){
+		std::ofstream outFile(outputName);
 
-	auto events = parseEvents(outputName, windowSize, majority);
+		// sort a single file by chrom then start
+		auto *bed_sorter_custom = new KwayMergeSort<single> (fileName,
+		                                                     &outFile,
+		                                                     bySize,
+		                                                     bufferSize,
+		                                                     compressOutput,
+		                                                     tempPath);
+		bed_sorter_custom->SetComparison(bySize);
+		bed_sorter_custom->Sort();
+		outFile.close();
+		auto events = parseEvents(outputName, windowSize, majority, channels);
+	} else{
+		auto events = parseEvents(fileName, windowSize, majority, channels);
+	}
+
+
+	auto events = parseEvents(outputName, windowSize, majority, channels);
 	writeEvents(events, Binary, outputName);
 
 	std::cout << "Found coincidences. Output at:\t" << outputName << std::endl;
