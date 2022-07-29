@@ -1,6 +1,5 @@
 
-#include "../include/CoincidenceProcess.h"
-
+#include "include/CoincidenceProcess.h"
 
 std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long windowSize, int numHitsCoincidence, const std::vector<int>& includedChannels) {
 	// TODO(josh): Group by channels or by hits
@@ -57,12 +56,6 @@ std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long w
 	return events;
 }
 
-bool bySize(single const &a, single const &b) {
-	if      (a.s.time < b.s.time)  return true;
-	else if (a.s.time > b.s.time)  return false;
-	else {return false;}
-}
-
 int writeEvents(const std::vector<SinglesWGroup>& events, FileType type, const std::string& name){
 	std::ofstream outFile (name);
 	switch (type) {
@@ -82,17 +75,6 @@ int writeEvents(const std::vector<SinglesWGroup>& events, FileType type, const s
 	return 0;
 }
 
-bool single::operator<(const single &b) const {
-		if (s.time < b.s.time){
-			return true;
-		}
-		else if (s.time > b.s.time) {
-			return false ;
-		}
-		else{
-			return false;
-		}
-}
 
 std::vector<int> readChannels(const std::string& path){
 	std::ifstream inFile (path);
@@ -121,7 +103,7 @@ int main(int argc, char* argv[]) {
 	std::vector<int> channels = readChannels(allowedChannelPath);
 
 	std::string outputName = fileName.substr(0, fileName.find_last_of('.')) + "_grouped" + fileName.substr(fileName.find_last_of('.'), fileName.size());
-
+	std::vector<SinglesWGroup> events;
 	if(sort){
 		std::ofstream outFile(outputName);
 
@@ -135,13 +117,11 @@ int main(int argc, char* argv[]) {
 		bed_sorter_custom->SetComparison(bySize);
 		bed_sorter_custom->Sort();
 		outFile.close();
-		auto events = parseEvents(outputName, windowSize, majority, channels);
+		events = parseEvents(outputName, windowSize, majority, channels);
 	} else{
-		auto events = parseEvents(fileName, windowSize, majority, channels);
+		events = parseEvents(fileName, windowSize, majority, channels);
 	}
 
-
-	auto events = parseEvents(outputName, windowSize, majority, channels);
 	writeEvents(events, Binary, outputName);
 
 	std::cout << "Found coincidences. Output at:\t" << outputName << std::endl;
