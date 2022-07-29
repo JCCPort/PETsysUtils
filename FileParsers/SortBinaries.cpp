@@ -7,6 +7,10 @@
 int main(int argc, char* argv[]) {
 
 	std::string fileName = argv[1];
+	std::ifstream dataFile(fileName);
+	if (!dataFile.is_open()) {
+		std::cout << "Unable to open file";
+	}
 	std::string outputName = fileName.substr(0, fileName.find_last_of('.')) + "_sorted" + fileName.substr(fileName.find_last_of('.'), fileName.size());
 	std::ofstream outFile(outputName);
 	// sort a single file by chrom then start
