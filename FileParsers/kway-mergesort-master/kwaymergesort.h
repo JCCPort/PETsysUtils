@@ -26,9 +26,8 @@
 #include <unistd.h>
 #include <libgen.h> //for basename()
 
-using namespace std;
 
-bool isRegularFile(const string &filename);
+bool isRegularFile(const std::string &filename);
 
 // STLized version of basename()
 // (because POSIX basename() modifies the input string pointer)
@@ -42,13 +41,13 @@ class MERGE_DATA {
 public:
 	// data
 	T data;
-	istream *stream;
+	std::istream *stream;
 
 	bool (*compFunc)(const T &a, const T &b);
 
 	// constructor
 	MERGE_DATA(const T &data,
-	           istream *stream,
+	           std::istream *stream,
 	           bool (*compFunc)(const T &a, const T &b))
 			:
 			data(data),
@@ -74,19 +73,19 @@ class KwayMergeSort {
 public:
 
 	// constructor, using custom comparison function
-	KwayMergeSort(string inFile,
-	              ostream *out,
+	KwayMergeSort(std::string inFile,
+	              std::ostream *out,
 	              bool (*compareFunction)(const T &a, const T &b) = NULL,
 	              int maxBufferSize = 1000000,
 	              bool compressOutput = false,
-	              string tempPath = "./");
+	              std::string tempPath = "./");
 
 	// constructor, using T's overloaded < operator.  Must be defined.
-	KwayMergeSort(string inFile,
-	              ostream *out,
+	KwayMergeSort(std::string inFile,
+	              std::ostream *out,
 	              int maxBufferSize = 1000000,
 	              bool compressOutput = false,
-	              string tempPath = "./");
+	              std::string tempPath = "./");
 
 	// destructor
 	~KwayMergeSort();
@@ -96,18 +95,18 @@ public:
 	void SetComparison(bool (*compareFunction)(const T &a, const T &b));   // change the sort criteria
 
 private:
-	string _inFile;
+	std::string _inFile;
 
 	bool (*_compareFunction)(const T &a, const T &b);
 
-	string _tempPath;
-	vector<string> _vTempFileNames;
-	vector<ifstream *> _vTempFiles;
+	std::string _tempPath;
+	std::vector<std::string> _vTempFileNames;
+	std::vector<std::ifstream *> _vTempFiles;
 	unsigned int _maxBufferSize;
 	unsigned int _runCounter;
 	bool _compressOutput;
-	bool _tempFileUsed;
-	ostream *_out;
+	bool _tempFileUsed{};
+	std::ostream *_out;
 
 	// drives the creation of sorted sub-files stored on disk.
 	void DivideAndSort();
@@ -116,7 +115,7 @@ private:
 	// final, sorted and merged output is written to "out".
 	void Merge();
 
-	void WriteToTempFile(const vector<T> &lineBuffer);
+	void WriteToTempFile(const std::vector<T> &lineBuffer);
 
 	void OpenTempFiles();
 
@@ -132,22 +131,22 @@ private:
 
 // constructor
 template<class T>
-KwayMergeSort<T>::KwayMergeSort(string inFile,
-                                ostream *out,
+KwayMergeSort<T>::KwayMergeSort(std::string inFile,
+                                std::ostream *out,
                                 bool (*compareFunction)(const T &a, const T &b),
                                 int maxBufferSize,
                                 bool compressOutput,
-                                string tempPath)
+                                std::string tempPath)
 		: _inFile(std::move(inFile)), _out(out), _compareFunction(compareFunction), _tempPath(std::move(tempPath)), _maxBufferSize(maxBufferSize),
 		  _runCounter(0), _compressOutput(compressOutput) {}
 
 // constructor
 template<class T>
-KwayMergeSort<T>::KwayMergeSort(string inFile,
-                                ostream *out,
+KwayMergeSort<T>::KwayMergeSort(std::string inFile,
+                                std::ostream *out,
                                 int maxBufferSize,
                                 bool compressOutput,
-                                string tempPath)
+                                std::string tempPath)
 		: _inFile(std::move(inFile)), _out(out), _compareFunction(NULL), _tempPath(std::move(tempPath)), _maxBufferSize(maxBufferSize), _runCounter(0),
 		  _compressOutput(compressOutput) {}
 
@@ -179,7 +178,7 @@ void KwayMergeSort<T>::SetComparison(bool (*compareFunction)(const T &a, const T
 template<class T>
 void KwayMergeSort<T>::DivideAndSort() {
 
-	istream *input = new ifstream(_inFile.c_str(), ios::in);
+	std::istream *input = new std::ifstream(_inFile.c_str(), std::ios::in);
 	// gzipped
 	// if ((isGzipFile(_inFile) == true) && (isRegularFile(_inFile) == true)) {
 	//     delete input;
@@ -188,10 +187,10 @@ void KwayMergeSort<T>::DivideAndSort() {
 
 	// bail unless the file is legit
 	if (!input->good()) {
-		cerr << "Error: The requested input file (" << _inFile << ") could not be opened. Exiting!" << endl;
+		std::cerr << "Error: The requested input file (" << _inFile << ") could not be opened. Exiting!" << std::endl;
 		exit(1);
 	}
-	vector<T> lineBuffer;
+	std::vector<T> lineBuffer;
 	lineBuffer.reserve(100000);
 	unsigned int totalBytes = 0;  // track the number of bytes consumed so far.
 
@@ -250,21 +249,21 @@ void KwayMergeSort<T>::DivideAndSort() {
 
 
 template<class T>
-void KwayMergeSort<T>::WriteToTempFile(const vector<T> &lineBuffer) {
+void KwayMergeSort<T>::WriteToTempFile(const std::vector<T> &lineBuffer) {
 	// name the current tempfile
-	stringstream tempFileSS;
+	std::stringstream tempFileSS;
 	if (_tempPath.empty())
 		tempFileSS << _inFile << "." << _runCounter;
 	else
 		tempFileSS << _tempPath << "/" << stl_basename(_inFile) << "." << _runCounter;
-	string tempFileName = tempFileSS.str();
+	std::string tempFileName = tempFileSS.str();
 
 	// do we want a regular or a gzipped tempfile?
-	ofstream *output;
+	std::ofstream *output;
 	//if (_compressOutput == true)
 	//output = new ogzstream(tempFileName.c_str(), ios::out);
 	//else
-	output = new ofstream(tempFileName.c_str(), ios::binary);
+	output = new std::ofstream(tempFileName.c_str(), std::ios::binary);
 
 	// write the contents of the current buffer to the temp file
 	for (size_t i = 0; i < lineBuffer.size(); ++i) {
@@ -301,7 +300,7 @@ void KwayMergeSort<T>::Merge() {
 	OpenTempFiles();
 
 	// priority queue for the buffer.
-	priority_queue<MERGE_DATA<T> > outQueue;
+	std::priority_queue<MERGE_DATA<T> > outQueue;
 
 	// extract the first line from each temp file
 	T line;
@@ -333,12 +332,12 @@ template<class T>
 void KwayMergeSort<T>::OpenTempFiles() {
 	for (auto &_vTempFileName: _vTempFileNames) {
 
-		ifstream *file;
+		std::ifstream *file;
 
 		// not gzipped
 		// if ((isGzipFile(_vTempFileNames[i]) == false) && (isRegularFile(_vTempFileNames[i]) == true)) {
 		if (isRegularFile(_vTempFileName)) {
-			file = new ifstream(_vTempFileName.c_str(), ios::in);
+			file = new std::ifstream(_vTempFileName.c_str(), std::ios::in);
 		}
 		// gzipped
 		//else if ((isGzipFile(_vTempFileNames[i]) == true) && (isRegularFile(_vTempFileNames[i]) == true)) {
@@ -349,9 +348,9 @@ void KwayMergeSort<T>::OpenTempFiles() {
 			// add a pointer to the opened temp file to the list
 			_vTempFiles.push_back(file);
 		} else {
-			cerr << "Unable to open temp file (" << _vTempFileName
+			std::cerr << "Unable to open temp file (" << _vTempFileName
 			     << ").  I suspect a limit on number of open file handles.  Exiting."
-			     << endl;
+			     << std::endl;
 			exit(1);
 		}
 	}
@@ -378,13 +377,13 @@ void KwayMergeSort<T>::CloseTempFiles() {
 
    This implies that the file can be opened/closed/seek'd multiple times without losing information
  */
-bool isRegularFile(const string &filename) {
+bool isRegularFile(const std::string &filename) {
 	struct stat buf{};
 	int i;
 
 	i = stat(filename.c_str(), &buf);
 	if (i != 0) {
-		cerr << "Error: can't determine file type of '" << filename << "': " << strerror(errno) << endl;
+		std::cerr << "Error: can't determine file type of '" << filename << "': " << strerror(errno) << std::endl;
 		exit(1);
 	}
 	if (S_ISREG(buf.st_mode))
@@ -398,14 +397,14 @@ bool isRegularFile(const string &filename) {
    returns TRUE if the file has a GZIP header.
    Should only be run on regular files.
  */
-bool isGzipFile(const string &filename) {
+bool isGzipFile(const std::string &filename) {
 	//see http://www.gzip.org/zlib/rfc-gzip.html#file-format
 	struct {
 		unsigned char id1;
 		unsigned char id2;
 		unsigned char cm;
 	} gzip_header{};
-	ifstream f(filename.c_str(), ios::in | ios::binary);
+	std::ifstream f(filename.c_str(), std::ios::in | std::ios::binary);
 	if (!f)
 		return false;
 
@@ -423,8 +422,8 @@ bool isGzipFile(const string &filename) {
 }
 
 
-string stl_basename(const string &path) {
-	string result;
+std::string stl_basename(const std::string &path) {
+	std::string result;
 
 	char *path_dup = strdup(path.c_str());
 	char *basename_part = basename(path_dup);

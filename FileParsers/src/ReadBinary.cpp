@@ -23,8 +23,7 @@ std::vector<SinglesWGroup> parseEvents(const std::string &path, long long window
 			timesInWindow.push_back(single_.time); // Keep updating with the newest time
 			hitsInWindow.push_back(single_);
 
-			if ((single_.time - timesInWindow[0]) >
-			    windowSize) {  // Check if the distance between the first and the latest entry is greater than the window size
+			if ((single_.time - timesInWindow[0]) > windowSize) {  // Check if the distance between the first and the latest entry is greater than the window size
 				timesInWindow.erase(timesInWindow.begin());
 				hitsInWindow.erase(hitsInWindow.begin());
 			}
@@ -82,13 +81,13 @@ int writeEvents(const std::vector<SinglesWGroup>& events, FileType type, const s
 	return 0;
 }
 
-int main(int argc, char* argv[]) {
-	std::string fileName = argv[1];
-	long long windowSize = (long long)(std::stoi(argv[2]));
-	int majority = std::stoi(argv[3]);
-
-	std::string outputName = fileName.substr(0, fileName.find_last_of('.')) + "_grouped" + fileName.substr(fileName.find_last_of('.'), fileName.size());
-	auto events = parseEvents(fileName, windowSize, majority);
-	writeEvents(events, Binary, outputName);
-	std::cout << "Found coincidences file. Output at:\t" << outputName << std::endl;
-}
+//int main(int argc, char* argv[]) {
+//	std::string fileName = argv[1];
+//	long long windowSize = (long long)(std::stoi(argv[2]));
+//	int majority = std::stoi(argv[3]);
+//
+//	std::string outputName = fileName.substr(0, fileName.find_last_of('.')) + "_grouped" + fileName.substr(fileName.find_last_of('.'), fileName.size());
+//	auto events = parseEvents(fileName, windowSize, majority);
+//	writeEvents(events, Binary, outputName);
+//	std::cout << "Found coincidences file. Output at:\t" << outputName << std::endl;
+//}
