@@ -1,0 +1,4 @@
+/home/petsys/PETsysUtils/FileParsers/build/CMakeFiles/rebuild_cache.dir
+/home/petsys/PETsysUtils/FileParsers/build/CMakeFiles/edit_cache.dir
+/home/petsys/PETsysUtils/FileParsers/build/CMakeFiles/sort.dir
+/home/petsys/PETsysUtils/FileParsers/build/CMakeFiles/CoincidenceProcess.dir

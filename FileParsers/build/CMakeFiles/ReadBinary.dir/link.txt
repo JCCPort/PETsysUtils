@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/ReadBinary.dir/src/ReadBinary.cpp.o CMakeFiles/ReadBinary.dir/src/ReadPlain.cpp.o -o ReadBinary 
