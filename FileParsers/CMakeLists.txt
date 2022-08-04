@@ -1,6 +1,8 @@
 project(PETsysParsers)
 cmake_minimum_required(VERSION 3.20)
 
+set (CMAKE_CXX_STANDARD 17)
+
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_C_FLAGS "-O0 -pthread -DISDEBUG")
     set(CMAKE_CXX_FLAGS "-O0 -pthread -DISDEBUG")

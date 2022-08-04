@@ -12,7 +12,7 @@ std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long w
 	Singles single_{};
 
 	long long prevTime = 0;
-	int evNum = 0;
+	long evNum = 0;
 	std::vector<Singles> hitsInWindow;
 
 	SinglesWGroup event_{};
