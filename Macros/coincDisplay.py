@@ -1,12 +1,12 @@
 """ Plot the channels triggered in each coincidence group. First argument is the data file and the second file is the
 mapping file"""
 import sys
-import warnings
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as plt_p
 import matplotlib.backends.backend_pdf
+from matplotlib.colors import ListedColormap
 
 if __name__ == '__main__':
     data = np.fromfile(sys.argv[1], dtype=[("time", np.longlong), ("energy", np.single), ("channel", np.intc),
@@ -22,8 +22,8 @@ if __name__ == '__main__':
             print("Debugging")
 
     data = pd.DataFrame(data)
-    data_limit = int(len(data)/700)
-    data = data[0:data_limit]
+    # data_limit = int(len(data)/700)
+    data = data[0:200]
 
     if debug:
         print("Length of data:", len(data))
@@ -50,31 +50,22 @@ if __name__ == '__main__':
 
     # open pdf to save figures
     if not debug:
-
         pdf = matplotlib.backends.backend_pdf.PdfPages("../tempFigureDump/output_{}.pdf".format(fileName))
+    else:
+        pdf = None
 
-    for i in range(0, max_group):
-        if i % 100 == 0:
-            print("Group {} of {}".format(i, max_group))
-        dataByGroup = data[data['group'] == i]
+    for group in range(0, max_group):
+        if group % 100 == 0:
+            print("Group {} of {}".format(group, max_group))
+        dataByGroup = data[data['group'] == group]
 
         # separate into arrays
         chipID_4_data = dataByGroup[dataByGroup['array'] == 4]
         chipID_8_data = dataByGroup[dataByGroup['array'] == 8]
 
-        if len(chipID_4_data) < 2:
-            warnings.warn("Group skipped, cannot plot <2 events on an array")
-            continue
-        if len(chipID_8_data) < 2:
-            warnings.warn("Group skipped, cannot plot <2 events on an array")
-            continue
-
         # set up plots
         fig = plt.figure(figsize=(10, 10))
-        plt.suptitle("Run: {}".format(fileName))
-
-        # textPlot = fig.add_subplot(223)
-        # textPlot.text(0,0, "test")
+        plt.suptitle("Run: {}\nGroup {}".format(fileName, group))
 
         leftHM = fig.add_subplot(221)
         leftHM.set_xlabel('x [pixels]')
@@ -86,10 +77,31 @@ if __name__ == '__main__':
         rightHM.set_ylabel('y [pixels]')
         rightHM.title.set_text("ChipID = 8")
 
-        h_left = leftHM.hist2d(chipID_4_data['xi'], chipID_4_data['yi'], bins=[8, 8], range=[[0, 8], [0, 8]], cmin=1)
-        leftHM.grid(which='major', axis='both', linestyle='-', color='k', linewidth=1, alpha=0.5)
+        # getting around not plotting <2 on an array:
+        # TODO: Either figure out how to do this properly, or get the colours sorted at the very least
+        colourMap_white = ListedColormap("white")
 
-        h_right = rightHM.hist2d(chipID_8_data['xi'], chipID_8_data['yi'], bins=[8, 8], range=[[0, 8], [0, 8]], cmin=1)
+        if chipID_4_data.shape[0] < 1:
+            h_left = leftHM.hist2d([0, 0], [0, 1], bins=[8, 8], range=[[0, 8], [0, 8]], cmin=1, cmap=colourMap_white)
+        elif chipID_4_data.shape[0] < 2:
+            temp_df_4 = pd.DataFrame(chipID_4_data)
+            temp_df_4 = pd.concat([temp_df_4] * 2, ignore_index=True)
+            h_left = leftHM.hist2d(temp_df_4['xi'], temp_df_4['yi'], bins=[8, 8], range=[[0, 8], [0, 8]], cmin=1)
+        else:
+            h_left = leftHM.hist2d(chipID_4_data['xi'], chipID_4_data['yi'], bins=[8, 8], range=[[0, 8], [0, 8]],
+                                   cmin=1)
+
+        if chipID_8_data.shape[0] < 1:
+            h_right = rightHM.hist2d([0, 0], [0, 1], bins=[8, 8], range=[[0, 8], [0, 8]], cmin=1, cmap=colourMap_white)
+        elif chipID_8_data.shape[0] < 2:
+            temp_df_8 = pd.DataFrame(chipID_8_data)
+            temp_df_8 = pd.concat([temp_df_8] * 2, ignore_index=True)
+            h_right = rightHM.hist2d(temp_df_8['xi'], temp_df_8['yi'], bins=[8, 8], range=[[0, 8], [0, 8]], cmin=1)
+        else:
+            h_right = rightHM.hist2d(chipID_8_data['xi'], chipID_8_data['yi'], bins=[8, 8], range=[[0, 8], [0, 8]],
+                                     cmin=1)
+
+        leftHM.grid(which='major', axis='both', linestyle='-', color='k', linewidth=1, alpha=0.5)
         rightHM.grid(which='major', axis='both', linestyle='-', color='k', linewidth=1, alpha=0.5)
 
         leftHM.set_aspect('equal')
