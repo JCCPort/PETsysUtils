@@ -20,15 +20,11 @@ std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long w
 		if (!(std::find(includedChannels.begin(), includedChannels.end(), single_.channel) != includedChannels.end())){
 			continue;
 		}
-
-		hitsInWindow.push_back(single_); // Keep updating with the most recent hit
-
-		if ((single_.time - hitsInWindow[0].time) > windowSize) {  // Check if the distance between the first and the latest entry is greater than the window size
-			hitsInWindow.erase(hitsInWindow.begin());
-		}
-
-		if (hitsInWindow.size() >= numHitsCoincidence) {
-			if ((single_.time - hitsInWindow[0].time) > windowSize) {  // Keep looking to add hits until you get to the window length
+		
+		if ((single_.time - hitsInWindow[0].time) <= windowSize){ // Check if the distance between the first and the possible entry is greater than the window size
+			hitsInWindow.push_back(single_); // Keep updating with the most recent hit
+		} else {
+			if (hitsInWindow.size() >= numHitsCoincidence){
 				for(auto & k : hitsInWindow) {
 					event_.time = k.time;
 					event_.energy = k.energy;
@@ -36,14 +32,16 @@ std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long w
 					event_.group = evNum;
 					events.push_back(event_);
 				}
-
+				
 				// Empty these vectors now that a group is going to be written
 				hitsInWindow.clear();
-
+				
 				evNum++;
+			} else {
+				hitsInWindow.erase(hitsInWindow.begin());
+				hitsInWindow.push_back(single_);
 			}
 		}
-
 
 		if ((prevTime > single_.time)) {
 			std::cout << prevTime << "\t" << single_.time << std::endl;
