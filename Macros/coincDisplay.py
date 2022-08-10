@@ -22,7 +22,7 @@ if __name__ == '__main__':
     tempTimeHistLimit = 1000000
     timeHistBins = np.arange(0, 160, 0.5)
 
-    # choice for energy plotting goes after mapping file, otherwise debug and energy plot goes anyway
+    # setting up for optional arguments
     debug = False
     energyPlot = False
     cBarTopMin = None
@@ -52,10 +52,10 @@ if __name__ == '__main__':
     data = pd.DataFrame(data)
     # data = data[0:7]
     print("Length of data:", len(data))
-    energyLimit = data['energy'].max() + 1
+
+    energyLimit = 0
 
     if debug:
-        # print("Length of data:", len(data))
         print(data[0:20])
     if energyPlot:
         cBarTopMin = data['energy'].min()
@@ -96,13 +96,16 @@ if __name__ == '__main__':
         if group % 10 == 0:
             print("Group {} of {}".format(group, max_group))
 
+        # only working with the data in this group
         dataByGroup = data[data['group'] == group]
         summedEnergy = dataByGroup['energy'].sum()
 
+        # cut in case of muons
         if summedEnergy < energyLimit:
             continue
 
-        # add time wrt first in group - offset by 1ns for plotting
+        # add time wrt first in group. To show the first hit on the time heatmap, the time needs to not be 0.
+        # Therefore all entries are offset by +1ns
         dataByGroup['timewrtfirst'] = ((dataByGroup['time'] - dataByGroup['time'].min()) / 1000) + 1
 
         # set colour bar limit for the time HM for the group
@@ -112,7 +115,7 @@ if __name__ == '__main__':
         chipID_4_data = dataByGroup[dataByGroup['array'] == 4]
         chipID_8_data = dataByGroup[dataByGroup['array'] == 8]
 
-        # set up figure
+        # set up figure dimensions, titles and labels
         fig = plt.figure(figsize=(10, 13))
 
         if energyPlot:
@@ -170,8 +173,8 @@ if __name__ == '__main__':
         # fix does not account for the two events being on the same channel
 
         colourMap_white = ListedColormap("white")
-
         if chipID_4_data.shape[0] < 1:
+            # cannot plot a blank entry => plot arbitrary data and colour is white...?
             h_left = leftHM.hist2d([2, 6], [2, 6], bins=[4, 4], range=[[2, 6], [2, 6]], cmin=1, cmap=colourMap_white,
                                    vmin=cBarTopMin, vmax=cBarTopMax)
             time_left = timeHM_left.hist2d([0, 0], [0, 1], bins=[4, 4], range=[[2, 6], [2, 6]], cmin=1,
@@ -179,7 +182,7 @@ if __name__ == '__main__':
 
         elif chipID_4_data.shape[0] < 2:
             # The function won't plot a grid for one data point, so we double it.
-            # Need to compensate for this in the energy plot
+            # Need to compensate for this in the energy and time heatmaps by halving it
             temp_df_4 = pd.DataFrame(chipID_4_data)
             temp_df_4 = pd.concat([temp_df_4] * 2, ignore_index=True)
             if energyPlot:
@@ -191,11 +194,10 @@ if __name__ == '__main__':
                                    weights=temp_weights_4, cmin=1, vmin=cBarTopMin, vmax=cBarTopMax)
             time = timePlot.hist(chipID_4_data['timewrtfirst'], bins=timeHistBins, label="Chip 4")
             time_left = timeHM_left.hist2d(temp_df_4['xi'], temp_df_4['yi'], bins=[4, 4], range=[[2, 6], [2, 6]],
-                                           weights=temp_df_4['timewrtfirst'], cmin=1, vmax=cBarTimeMax, vmin=0,
+                                           weights=(temp_df_4['timewrtfirst']/2), cmin=1, vmax=cBarTimeMax, vmin=0,
                                            cmap=plt.cm.plasma_r)
 
-            # txt = chipID_4_data['timewrtfirst']
-            # plt.text(0.10, 0.47, txt, transform=fig.transFigure, size=12)
+
         else:
             h_left = leftHM.hist2d(chipID_4_data['xi'], chipID_4_data['yi'], bins=[4, 4], range=[[2, 6], [2, 6]],
                                    weights=energyWeights_4, cmin=1, vmin=cBarTopMin, vmax=cBarTopMax)
@@ -204,11 +206,17 @@ if __name__ == '__main__':
                                            range=[[2, 6], [2, 6]], weights=chipID_4_data['timewrtfirst'], cmin=1,
                                            vmax=cBarTimeMax, vmin=0, cmap=plt.cm.plasma_r)
 
+            if True in chipID_4_data['channel'].duplicated():
+                txt = "Warning: Pixel receiving two hits in coincidence time window on array 4"
+                plt.text(0.20, 0.92, txt, transform=fig.transFigure, size=12)
+                print(chipID_4_data)
+
         if chipID_8_data.shape[0] < 1:
             h_right = rightHM.hist2d([2, 6], [2, 6], bins=[4, 4], range=[[2, 6], [2, 6]], cmin=1, cmap=colourMap_white,
                                      vmin=cBarTopMin, vmax=cBarTopMax)
-            time_right = timeHM_right.hist2d([0, 0], [0, 1], bins=[4, 4], range=[[2, 6], [2, 6]], cmin=1,
+            time_right = timeHM_right.hist2d([2, 6], [2, 6], bins=[4, 4], range=[[2, 6], [2, 6]], cmin=1,
                                              cmap=colourMap_white, vmin=0, vmax=cBarTimeMax)
+
 
         elif chipID_8_data.shape[0] < 2:
             temp_df_8 = pd.DataFrame(chipID_8_data)
@@ -222,8 +230,8 @@ if __name__ == '__main__':
                                      weights=temp_weights_8, cmin=1, vmin=cBarTopMin, vmax=cBarTopMax)
             time = timePlot.hist(chipID_8_data['timewrtfirst'], bins=timeHistBins, label="Chip 8")
             time_right = timeHM_right.hist2d(temp_df_8['xi'], temp_df_8['yi'], bins=[4, 4], range=[[2, 6], [2, 6]],
-                                             weights=temp_df_8['timewrtfirst'], vmin=0, vmax=cBarTimeMax,
-                                             cmap=plt.cm.plasma_r)
+                                             weights=(temp_df_8['timewrtfirst']/2), vmin=0, vmax=cBarTimeMax,
+                                             cmap=plt.cm.plasma_r, cmin=1)
 
         else:
             h_right = rightHM.hist2d(chipID_8_data['xi'], chipID_8_data['yi'], bins=[4, 4], range=[[2, 6], [2, 6]],
@@ -232,8 +240,13 @@ if __name__ == '__main__':
             time_right = timeHM_right.hist2d(chipID_8_data['xi'], chipID_8_data['yi'], bins=[4, 4],
                                              range=[[2, 6], [2, 6]], weights=chipID_8_data['timewrtfirst'], cmin=1,
                                              vmin=0, vmax=cBarTimeMax, cmap=plt.cm.plasma_r)
+            if True in chipID_8_data['channel'].duplicated():
+                txt = "Warning: Pixel receiving two hits in coincidence time window on array 8"
+                plt.text(0.20, 0.94, txt, transform=fig.transFigure, size=12)
+                print(chipID_8_data['channel'])
 
         # formatting plots
+        # TODO: sort out order of formatting, we have some at beginning and some here
         leftHM.grid(which='major', axis='both', linestyle='-', color='k', linewidth=1, alpha=0.5)
         rightHM.grid(which='major', axis='both', linestyle='-', color='k', linewidth=1, alpha=0.5)
         timeHM_right.grid(which='major', axis='both', linestyle='-', color='k', linewidth=1, alpha=0.5)
@@ -244,14 +257,10 @@ if __name__ == '__main__':
         timeHM_right.set_aspect('equal')
         timeHM_left.set_aspect('equal')
 
-        # leftHM.add_patch(plt_p.Rectangle((2, 2), 4, 4, facecolor=(0, 0, 0, 0), edgecolor='r', linewidth=2))
-        # rightHM.add_patch(plt_p.Rectangle((2, 2), 4, 4, facecolor=(0, 0, 0, 0), edgecolor='r', linewidth=2))
-        # timeHM_right.add_patch(plt_p.Rectangle((2, 2), 4, 4, facecolor=(0, 0, 0, 0), edgecolor='r', linewidth=2))
-        # timeHM_left.add_patch(plt_p.Rectangle((2, 2), 4, 4, facecolor=(0, 0, 0, 0), edgecolor='r', linewidth=2))
-
         timePlot.legend(loc="upper right")
         timePlot.ticklabel_format(axis='x', useOffset=True)
 
+        # setting colour bars for the heatmaps
         if energyPlot:
             cbar_topLeft = fig.colorbar(h_left[3], ax=leftHM)
             cbar_topRight = fig.colorbar(h_right[3], ax=rightHM)
