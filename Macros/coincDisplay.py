@@ -20,7 +20,7 @@ if __name__ == '__main__':
     fileName = sys.argv[1].split("/")[-1].split(".ldat")[0]
     pd.options.mode.chained_assignment = None
     tempTimeHistLimit = 1000000
-    timeHistBins = np.arange(0, 80, 0.25)
+    timeHistBins = np.arange(0, 160, 0.25)
 
     # choice for energy plotting goes after mapping file, otherwise debug and energy plot goes anyway
     debug = False
@@ -28,6 +28,7 @@ if __name__ == '__main__':
     cBarMin = None
     cBarMax = None
     ToT = True
+    muon = False
 
     if len(sys.argv) > 3:
         if 'energy' in sys.argv:
@@ -41,16 +42,23 @@ if __name__ == '__main__':
         if 'qdc' in sys.argv:
             ToT = False
 
+        if 'muon' in sys.argv:
+            muon = True
+            fileName += '_muon'
+
     data = pd.DataFrame(data)
     data = data[0:2500]
     print("Length of data:", len(data))
+    energyLimit = data['energy'].max() + 1
 
     if debug:
-        print("Length of data:", len(data))
+        # print("Length of data:", len(data))
         print(data[0:20])
     if energyPlot:
         cBarMin = data['energy'].min()
         cBarMax = data['energy'].max()
+    if muon:
+        energyLimit = 2000
 
     groupEnergy = data.groupby('group')['energy'].sum().reset_index()['energy'].values
 
@@ -69,14 +77,15 @@ if __name__ == '__main__':
 
     # open pdf to save figures
     if not debug:
-        pdf = b_pdf.PdfPages("../tempFigureDump/output_{}.pdf".format(fileName))
-        firstPage = plt.figure(figsize=(11.69, 8.27))
-        firstPage.clf()
-        txt = 'This is not all the events in this run, it is cut due to \nprocessing time. ' \
-              'The last group may not have all hits and therefore should \nbe discarded.'
-        firstPage.text(0.5, 0.5, txt, transform=firstPage.transFigure, size=24, ha="center")
-        pdf.savefig()
-        plt.close()
+        pdf = b_pdf.PdfPages("../tempFigureDump/display_{}.pdf".format(fileName))
+        # firstPage = plt.figure(figsize=(11.69, 8.27))
+        # firstPage.clf()
+        # txt = 'This is not all the events in this run, it is cut due to \n' \
+        #       'processing time. The last group may not have all hits and\n' \
+        #       'therefore should be discarded.'
+        # firstPage.text(0.5, 0.5, txt, transform=firstPage.transFigure, size=24, ha="center")
+        # pdf.savefig()
+        # plt.close()
     else:
         pdf = None
 
@@ -85,6 +94,10 @@ if __name__ == '__main__':
             print("Group {} of {}".format(group, max_group))
 
         dataByGroup = data[data['group'] == group]
+        summedEnergy = dataByGroup['energy'].sum()
+
+        if summedEnergy < energyLimit:
+            continue
 
         # separate into arrays
         chipID_4_data = dataByGroup[dataByGroup['array'] == 4]
@@ -118,7 +131,7 @@ if __name__ == '__main__':
         timePlot = fig.add_subplot(212)
         timePlot.set_xlabel('Time from first event in group [ns]')
         timePlot.set_ylabel('Count')
-        timePlot.set_yticks(range(0, 3, 1))
+        timePlot.set_yticks(range(0, 6, 1))
 
         # optional energy weights
         if energyPlot:
@@ -127,6 +140,7 @@ if __name__ == '__main__':
         else:
             energyWeights_4 = None
             energyWeights_8 = None
+
 
         # plotting the heatmaps
         # getting around not plotting <2 on an array
@@ -194,7 +208,6 @@ if __name__ == '__main__':
         rightHM.add_patch(plt_p.Rectangle((2, 2), 4, 4, facecolor=(0, 0, 0, 0), edgecolor='r', linewidth=2))
 
         timePlot.legend(loc="upper right")
-        # timePlot.set_xlim([0, 100000])
         timePlot.ticklabel_format(axis='x', useOffset=True)
 
         if energyPlot:
@@ -203,10 +216,6 @@ if __name__ == '__main__':
             if ToT:
                 cbar_left.set_label("Time over threshold [ns]")
                 cbar_right.set_label("Time over threshold [ns]")
-
-        # print("Group", group)
-        # print(chipID_4_data)
-        # print(chipID_8_data)
 
         if debug:
             plt.show()
