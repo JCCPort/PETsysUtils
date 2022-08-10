@@ -5,7 +5,7 @@ std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long w
 	// TODO(josh): Group by channels or by hits
 	std::ifstream dataFile(inputPath);
 	if (!dataFile.is_open()) {
-		std::cout << "Unable to open file";
+		std::cout << "Unable to open data file";
 	}
 
 	std::vector<SinglesWGroup> events;
@@ -20,6 +20,7 @@ std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long w
 		if (!(std::find(includedChannels.begin(), includedChannels.end(), single_.channel) != includedChannels.end())){
 			continue;
 		}
+
 		if(!hitsInWindow.empty()){
 			if ((single_.time - hitsInWindow[0].time) <= windowSize){ // Check if the distance between the first and the possible entry is greater than the window size
 				hitsInWindow.push_back(single_); // Keep updating with the most recent hit
@@ -79,6 +80,9 @@ int writeEvents(const std::vector<SinglesWGroup>& events, FileType type, const s
 
 std::vector<int> readChannels(const std::string& path){
 	std::ifstream inFile (path);
+	if (!inFile.is_open()) {
+		std::cout << "Unable to open channel file";
+	}
 	std::vector<int> allowedChannels;
 	std::string line;
 
