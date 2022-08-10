@@ -76,14 +76,14 @@ public:
 	KwayMergeSort(std::string inFile,
 	              std::ostream *out,
 	              bool (*compareFunction)(const T &a, const T &b) = NULL,
-	              int maxBufferSize = 1000000,
+	              long maxBufferSize = 1000000,
 	              bool compressOutput = false,
 	              std::string tempPath = "./");
 
 	// constructor, using T's overloaded < operator.  Must be defined.
 	KwayMergeSort(std::string inFile,
 	              std::ostream *out,
-	              int maxBufferSize = 1000000,
+	              long maxBufferSize = 1000000,
 	              bool compressOutput = false,
 	              std::string tempPath = "./");
 
@@ -91,7 +91,7 @@ public:
 	~KwayMergeSort();
 
 	void Sort();            // Sort the data
-	void SetBufferSize(int bufferSize);   // change the buffer size
+	void SetBufferSize(long bufferSize);   // change the buffer size
 	void SetComparison(bool (*compareFunction)(const T &a, const T &b));   // change the sort criteria
 
 private:
@@ -102,7 +102,7 @@ private:
 	std::string _tempPath;
 	std::vector<std::string> _vTempFileNames;
 	std::vector<std::ifstream *> _vTempFiles;
-	unsigned int _maxBufferSize;
+	unsigned long _maxBufferSize;
 	unsigned int _runCounter;
 	bool _compressOutput;
 	bool _tempFileUsed{};
@@ -134,7 +134,7 @@ template<class T>
 KwayMergeSort<T>::KwayMergeSort(std::string inFile,
                                 std::ostream *out,
                                 bool (*compareFunction)(const T &a, const T &b),
-                                int maxBufferSize,
+                                long maxBufferSize,
                                 bool compressOutput,
                                 std::string tempPath)
 		: _inFile(std::move(inFile)), _out(out), _compareFunction(compareFunction), _tempPath(std::move(tempPath)), _maxBufferSize(maxBufferSize),
@@ -144,7 +144,7 @@ KwayMergeSort<T>::KwayMergeSort(std::string inFile,
 template<class T>
 KwayMergeSort<T>::KwayMergeSort(std::string inFile,
                                 std::ostream *out,
-                                int maxBufferSize,
+                                long maxBufferSize,
                                 bool compressOutput,
                                 std::string tempPath)
 		: _inFile(std::move(inFile)), _out(out), _compareFunction(NULL), _tempPath(std::move(tempPath)), _maxBufferSize(maxBufferSize), _runCounter(0),
@@ -164,7 +164,7 @@ void KwayMergeSort<T>::Sort() {
 
 // change the buffer size used for sorting
 template<class T>
-void KwayMergeSort<T>::SetBufferSize(int bufferSize) {
+void KwayMergeSort<T>::SetBufferSize(long bufferSize) {
 	_maxBufferSize = bufferSize;
 }
 
@@ -192,7 +192,7 @@ void KwayMergeSort<T>::DivideAndSort() {
 	}
 	std::vector<T> lineBuffer;
 	lineBuffer.reserve(100000);
-	unsigned int totalBytes = 0;  // track the number of bytes consumed so far.
+	unsigned long totalBytes = 0;  // track the number of bytes consumed so far.
 
 	// track whether or not we actually had to use a temp
 	// file based on the memory that was allocated

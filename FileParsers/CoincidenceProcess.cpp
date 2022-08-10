@@ -5,14 +5,14 @@ std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long w
 	// TODO(josh): Group by channels or by hits
 	std::ifstream dataFile(inputPath);
 	if (!dataFile.is_open()) {
-		std::cout << "Unable to open file";
+		throw std::runtime_error("Unable to open data file");
 	}
 
 	std::vector<SinglesWGroup> events;
 	Singles single_{};
 
 	long long prevTime = 0;
-	int evNum = 0;
+	long evNum = 0;
 	std::vector<Singles> hitsInWindow;
 
 	SinglesWGroup event_{};
@@ -21,29 +21,31 @@ std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long w
 			continue;
 		}
 
-		hitsInWindow.push_back(single_); // Keep updating with the most recent hit
+		if(!hitsInWindow.empty()){
+			if ((single_.time - hitsInWindow[0].time) <= windowSize){ // Check if the distance between the first and the possible entry is greater than the window size
+				hitsInWindow.push_back(single_); // Keep updating with the most recent hit
+			} else {
+				if (hitsInWindow.size() >= numHitsCoincidence){
+					for(auto & k : hitsInWindow) {
+						event_.time = k.time;
+						event_.energy = k.energy;
+						event_.channel = k.channel;
+						event_.group = evNum;
+						events.push_back(event_);
+					}
 
-		if ((single_.time - hitsInWindow[0].time) > windowSize) {  // Check if the distance between the first and the latest entry is greater than the window size
-			hitsInWindow.erase(hitsInWindow.begin());
-		}
+					// Empty these vectors now that a group is going to be written
+					hitsInWindow.clear();
 
-		if (hitsInWindow.size() >= numHitsCoincidence) {
-			if ((single_.time - hitsInWindow[0].time) > windowSize) {  // Keep looking to add hits until you get to the window length
-				for(auto & k : hitsInWindow) {
-					event_.time = k.time;
-					event_.energy = k.energy;
-					event_.channel = k.channel;
-					event_.group = evNum;
-					events.push_back(event_);
+					evNum++;
+				} else {
+					hitsInWindow.erase(hitsInWindow.begin());
+					hitsInWindow.push_back(single_);
 				}
-
-				// Empty these vectors now that a group is going to be written
-				hitsInWindow.clear();
-
-				evNum++;
 			}
+		} else {
+			hitsInWindow.push_back(single_);
 		}
-
 
 		if ((prevTime > single_.time)) {
 			std::cout << prevTime << "\t" << single_.time << std::endl;
@@ -78,6 +80,9 @@ int writeEvents(const std::vector<SinglesWGroup>& events, FileType type, const s
 
 std::vector<int> readChannels(const std::string& path){
 	std::ifstream inFile (path);
+	if (!inFile.is_open()) {
+		throw std::runtime_error("Unable to open channel file");
+	}
 	std::vector<int> allowedChannels;
 	std::string line;
 
@@ -96,7 +101,7 @@ int main(int argc, char* argv[]) {
 	std::string allowedChannelPath = argv[4];
 	bool sort = bool(std::stoi(argv[5]));
 
-	int  bufferSize     = 100000000;
+	long  bufferSize     = 10000000000;
 	bool compressOutput = false;
 	std::string tempPath     = "./";
 

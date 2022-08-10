@@ -1,6 +1,8 @@
 project(PETsysParsers)
 cmake_minimum_required(VERSION 3.20)
 
+set (CMAKE_CXX_STANDARD 17)
+
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_C_FLAGS "-O0 -pthread -DISDEBUG")
     set(CMAKE_CXX_FLAGS "-O0 -pthread -DISDEBUG")
@@ -14,6 +16,33 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     set(CMAKE_CXX_FLAGS "-O2 -pthread -fprofile-arcs -DISDEBUG")
     set(ISDEBUG)
 endif ()
+
+
+
+EXECUTE_PROCESS(COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+else ()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+endif ()
+
+set(MAKE_PROFILE FALSE)
+set(USE_PROFILE FALSE)
+
+if (MAKE_PROFILE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-generate -fprofile-dir=.")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate -fprofile-dir=.")
+endif ()
+
+if (USE_PROFILE)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use -fprofile-dir=.")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use -fprofile-dir=.")
+endif ()
+
+
+
 
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cpp)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh, ${PROJECT_SOURCE_DIR}/include/*.h, ${PROJECT_SOURCE_DIR}/include/*.icc)

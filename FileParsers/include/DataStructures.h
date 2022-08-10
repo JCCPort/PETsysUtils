@@ -13,7 +13,7 @@ struct SinglesWGroup{
 	long long time;
 	float energy;
 	int channel;
-	int group;
+	long group;
 };
 
 struct Event{
