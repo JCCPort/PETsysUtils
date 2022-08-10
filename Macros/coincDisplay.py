@@ -4,7 +4,7 @@ import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.patches as plt_p
+# import matplotlib.patches as plt_p
 import matplotlib.backends.backend_pdf as b_pdf
 from matplotlib.colors import ListedColormap
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
             fileName += '_muon'
 
     data = pd.DataFrame(data)
-    data = data[0:7]
+    # data = data[0:7]
     print("Length of data:", len(data))
     energyLimit = data['energy'].max() + 1
 
@@ -115,16 +115,14 @@ if __name__ == '__main__':
         # set up figure
         fig = plt.figure(figsize=(10, 13))
 
-        if not energyPlot:
-            plotType = "Location of hits in coincidence window"
-        else:
-            plotType = "Location of hits (weighted by ToT) in coincidence window"
-
-        if muon:
-            titleEnergy = "\t Total Energy = {}".format(summedEnergy)
+        if energyPlot:
+            units = "ns"
+            if not ToT:
+                units = "a.u."
+            titleEnergy = ", Total Energy = {:.4} {}".format(summedEnergy, units)
         else:
             titleEnergy = ""
-        plt.suptitle("{}\n{}\nGroup {}".format(fileName, plotType, group) + titleEnergy)
+        plt.suptitle("{}\nGroup {}".format(fileName, group) + titleEnergy)
 
         leftHM = fig.add_subplot(321)
         leftHM.set_xlabel('x [pixels]')
@@ -202,7 +200,8 @@ if __name__ == '__main__':
             h_left = leftHM.hist2d(chipID_4_data['xi'], chipID_4_data['yi'], bins=[4, 4], range=[[2, 6], [2, 6]],
                                    weights=energyWeights_4, cmin=1, vmin=cBarTopMin, vmax=cBarTopMax)
             time = timePlot.hist(chipID_4_data['timewrtfirst'], bins=timeHistBins, label="Chip 4")
-            time_left = timeHM_left.hist2d(chipID_4_data['xi'], chipID_4_data['yi'], bins=[4, 4], range=[[2, 6], [2, 6]], weights=chipID_4_data['timewrtfirst'], cmin=1,
+            time_left = timeHM_left.hist2d(chipID_4_data['xi'], chipID_4_data['yi'], bins=[4, 4],
+                                           range=[[2, 6], [2, 6]], weights=chipID_4_data['timewrtfirst'], cmin=1,
                                            vmax=cBarTimeMax, vmin=0, cmap=plt.cm.plasma_r)
 
         if chipID_8_data.shape[0] < 1:
@@ -230,7 +229,8 @@ if __name__ == '__main__':
             h_right = rightHM.hist2d(chipID_8_data['xi'], chipID_8_data['yi'], bins=[4, 4], range=[[2, 6], [2, 6]],
                                      weights=energyWeights_8, cmin=1, vmin=cBarTopMin, vmax=cBarTopMax)
             time = timePlot.hist(chipID_8_data['timewrtfirst'], bins=timeHistBins, label="Chip 8")
-            time_right = timeHM_right.hist2d(chipID_8_data['xi'], chipID_8_data['yi'], bins=[4, 4], range=[[2, 6], [2, 6]], weights=chipID_8_data['timewrtfirst'], cmin=1,
+            time_right = timeHM_right.hist2d(chipID_8_data['xi'], chipID_8_data['yi'], bins=[4, 4],
+                                             range=[[2, 6], [2, 6]], weights=chipID_8_data['timewrtfirst'], cmin=1,
                                              vmin=0, vmax=cBarTimeMax, cmap=plt.cm.plasma_r)
 
         # formatting plots
