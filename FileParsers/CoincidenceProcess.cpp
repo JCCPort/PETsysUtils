@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 	std::string allowedChannelPath = argv[4];
 	bool sort = bool(std::stoi(argv[5]));
 
-	int  bufferSize     = 100000000;
+	long  bufferSize     = 10000000000;
 	bool compressOutput = false;
 	std::string tempPath     = "./";
 
