@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as plt_p
-import matplotlib.backends.backend_pdf
+import matplotlib.backends.backend_pdf as b_pdf
 from matplotlib.colors import ListedColormap
 
 if __name__ == '__main__':
@@ -20,34 +20,37 @@ if __name__ == '__main__':
     fileName = sys.argv[1].split("/")[-1].split(".ldat")[0]
     pd.options.mode.chained_assignment = None
     tempTimeHistLimit = 1000000
-    timeHistBins = range(0, 100000, 100)
+    timeHistBins = np.arange(0, 80, 0.25)
 
-
-    # choice for energy plotting goes after mapping file, otherwise debug either goes there or after it
+    # choice for energy plotting goes after mapping file, otherwise debug and energy plot goes anyway
     debug = False
     energyPlot = False
     cBarMin = None
     cBarMax = None
+    ToT = True
 
     if len(sys.argv) > 3:
-        if (sys.argv[3] == 'debug') or (sys.argv[4] == 'debug'):
-            debug = True
-            print("Debugging")
-        if sys.argv[3] == 'energy':
+        if 'energy' in sys.argv:
             energyPlot = True
             print("Plotting energies, not hit count")
 
+        if 'debug' in sys.argv:
+            debug = True
+            print("Debugging")
+
+        if 'qdc' in sys.argv:
+            ToT = False
+
     data = pd.DataFrame(data)
-    # data_limit = int(len(data)/700)
-    # data = data[0:20]
+    data = data[0:2500]
+    print("Length of data:", len(data))
 
     if debug:
         print("Length of data:", len(data))
-        # print(data[0:20])
+        print(data[0:20])
     if energyPlot:
         cBarMin = data['energy'].min()
         cBarMax = data['energy'].max()
-
 
     groupEnergy = data.groupby('group')['energy'].sum().reset_index()['energy'].values
 
@@ -66,13 +69,20 @@ if __name__ == '__main__':
 
     # open pdf to save figures
     if not debug:
-        pdf = matplotlib.backends.backend_pdf.PdfPages("../tempFigureDump/output_{}.pdf".format(fileName))
+        pdf = b_pdf.PdfPages("../tempFigureDump/output_{}.pdf".format(fileName))
+        firstPage = plt.figure(figsize=(11.69, 8.27))
+        firstPage.clf()
+        txt = 'This is not all the events in this run, it is cut due to \nprocessing time. ' \
+              'The last group may not have all hits and therefore should \nbe discarded.'
+        firstPage.text(0.5, 0.5, txt, transform=firstPage.transFigure, size=24, ha="center")
+        pdf.savefig()
+        plt.close()
     else:
         pdf = None
 
     for group in range(0, max_group + 1):
-        # if group % 100 == 0:
-        #     print("Group {} of {}".format(group, max_group))
+        if group % 10 == 0:
+            print("Group {} of {}".format(group, max_group))
 
         dataByGroup = data[data['group'] == group]
 
@@ -82,13 +92,18 @@ if __name__ == '__main__':
 
         # add time wrt first in group
         firstEvent = dataByGroup['time'].min()
-        chipID_4_data['timewrtfirst'] = chipID_4_data['time'] - firstEvent
+        chipID_4_data['timewrtfirst'] = (chipID_4_data['time'] - firstEvent) / 1000
 
-        chipID_8_data['timewrtfirst'] = chipID_8_data['time'] - firstEvent
+        chipID_8_data['timewrtfirst'] = (chipID_8_data['time'] - firstEvent) / 1000
 
         # set up figure
         fig = plt.figure(figsize=(12, 10))
-        plt.suptitle("Run: {}\nGroup {}".format(fileName, group))
+
+        if not energyPlot:
+            plotType = "Location of hits in coincidence window"
+        else:
+            plotType = "Location of hits (weighted by ToT) in coincidence window"
+        plt.suptitle("Run: {}\n{}\nGroup {}".format(fileName, plotType, group))
 
         leftHM = fig.add_subplot(221)
         leftHM.set_xlabel('x [pixels]')
@@ -101,6 +116,9 @@ if __name__ == '__main__':
         rightHM.title.set_text("ChipID = 8")
 
         timePlot = fig.add_subplot(212)
+        timePlot.set_xlabel('Time from first event in group [ns]')
+        timePlot.set_ylabel('Count')
+        timePlot.set_yticks(range(0, 3, 1))
 
         # optional energy weights
         if energyPlot:
@@ -117,46 +135,52 @@ if __name__ == '__main__':
         colourMap_white = ListedColormap("white")
 
         if chipID_4_data.shape[0] < 1:
-            h_left = leftHM.hist2d([0, 0], [0, 1], bins=[8, 8], range=[[0, 8], [0, 8]], cmin=1, cmap=colourMap_white, vmin=cBarMin, vmax=cBarMax)
+            h_left = leftHM.hist2d([0, 0], [0, 1], bins=[8, 8], range=[[0, 8], [0, 8]], cmin=1, cmap=colourMap_white,
+                                   vmin=cBarMin, vmax=cBarMax)
 
         elif chipID_4_data.shape[0] < 2:
+            # The function won't plot a grid for one data point, so we double it. Need to compensate for this in the energy plot
             temp_df_4 = pd.DataFrame(chipID_4_data)
             temp_df_4 = pd.concat([temp_df_4] * 2, ignore_index=True)
             if energyPlot:
-                temp_weights_4 = temp_df_4['energy']
+                temp_weights_4 = temp_df_4['energy'] / 2
             else:
                 temp_weights_4 = None
 
-            h_left = leftHM.hist2d(temp_df_4['xi'], temp_df_4['yi'], bins=[8, 8], range=[[0, 8], [0, 8]], weights=temp_weights_4, cmin=1, vmin=cBarMin, vmax=cBarMax)
+            h_left = leftHM.hist2d(temp_df_4['xi'], temp_df_4['yi'], bins=[8, 8], range=[[0, 8], [0, 8]],
+                                   weights=temp_weights_4, cmin=1, vmin=cBarMin, vmax=cBarMax)
             time = timePlot.hist(chipID_4_data['timewrtfirst'], bins=timeHistBins, label="Chip 4")
 
             # txt = chipID_4_data['timewrtfirst']
             # plt.text(0.10, 0.47, txt, transform=fig.transFigure, size=12)
         else:
-            h_left = leftHM.hist2d(chipID_4_data['xi'], chipID_4_data['yi'], bins=[8, 8], range=[[0, 8], [0, 8]], weights=energyWeights_4, cmin=1, vmin=cBarMin, vmax=cBarMax)
+            h_left = leftHM.hist2d(chipID_4_data['xi'], chipID_4_data['yi'], bins=[8, 8], range=[[0, 8], [0, 8]],
+                                   weights=energyWeights_4, cmin=1, vmin=cBarMin, vmax=cBarMax)
             time = timePlot.hist(chipID_4_data['timewrtfirst'], bins=timeHistBins, label="Chip 4")
 
         if chipID_8_data.shape[0] < 1:
-            h_right = rightHM.hist2d([0, 0], [0, 1], bins=[8, 8], range=[[0, 8], [0, 8]], cmin=1, cmap=colourMap_white, vmin=cBarMin, vmax=cBarMax)
+            h_right = rightHM.hist2d([0, 0], [0, 1], bins=[8, 8], range=[[0, 8], [0, 8]], cmin=1, cmap=colourMap_white,
+                                     vmin=cBarMin, vmax=cBarMax)
 
         elif chipID_8_data.shape[0] < 2:
-            # The function won't plot a grid for one data point, so we double it
-            # TODO: Check if need to compensate the weighting
+
             temp_df_8 = pd.DataFrame(chipID_8_data)
             temp_df_8 = pd.concat([temp_df_8] * 2, ignore_index=True)
             if energyPlot:
-                temp_weights_8 = temp_df_8['energy']
+                temp_weights_8 = temp_df_8['energy'] / 2
             else:
                 temp_weights_8 = None
 
-            h_right = rightHM.hist2d(temp_df_8['xi'], temp_df_8['yi'], bins=[8, 8], range=[[0, 8], [0, 8]], weights=temp_weights_8, cmin=1, vmin=cBarMin, vmax=cBarMax)
-            time = timePlot.hist(chipID_8_data['timewrtfirst'], bins=timeHistBins, label="Chip 8")
-            # print(temp_df_8)
-
-            # txt = str(chipID_8_data['timewrtfirst'])
+            # txt = str(temp_df_8)
             # plt.text(0.65, 0.47, txt, transform=fig.transFigure, size=12)
+
+            h_right = rightHM.hist2d(temp_df_8['xi'], temp_df_8['yi'], bins=[8, 8], range=[[0, 8], [0, 8]],
+                                     weights=temp_weights_8, cmin=1, vmin=cBarMin, vmax=cBarMax)
+            time = timePlot.hist(chipID_8_data['timewrtfirst'], bins=timeHistBins, label="Chip 8")
+
         else:
-            h_right = rightHM.hist2d(chipID_8_data['xi'], chipID_8_data['yi'], bins=[8, 8], range=[[0, 8], [0, 8]], weights=energyWeights_8, cmin=1, vmin=cBarMin, vmax=cBarMax)
+            h_right = rightHM.hist2d(chipID_8_data['xi'], chipID_8_data['yi'], bins=[8, 8], range=[[0, 8], [0, 8]],
+                                     weights=energyWeights_8, cmin=1, vmin=cBarMin, vmax=cBarMax)
             time = timePlot.hist(chipID_8_data['timewrtfirst'], bins=timeHistBins, label="Chip 8")
 
         # formatting plots
@@ -173,20 +197,16 @@ if __name__ == '__main__':
         # timePlot.set_xlim([0, 100000])
         timePlot.ticklabel_format(axis='x', useOffset=True)
 
-        # fig.colorbar(h_left[3], ax=leftHM)
-        # fig.colorbar.clim(cBarMin, cBarMax)
         if energyPlot:
             cbar_left = fig.colorbar(h_left[3], ax=leftHM)
             cbar_right = fig.colorbar(h_right[3], ax=rightHM)
-        # cbar.set_clim(cBarMin, cBarMax)
+            if ToT:
+                cbar_left.set_label("Time over threshold [ns]")
+                cbar_right.set_label("Time over threshold [ns]")
 
-        # print(cBarMin, cBarMax)
-        # cbar.set_ticks(np.arange(cBarMin, cBarMax, 1))
-
-        print("Group", group)
+        # print("Group", group)
         # print(chipID_4_data)
         # print(chipID_8_data)
-        print("\n")
 
         if debug:
             plt.show()
