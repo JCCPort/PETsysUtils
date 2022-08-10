@@ -1,5 +1,5 @@
 """ Plot the channels triggered in each coincidence group. First argument is the data file and the second file is the
-mapping file"""
+mapping file. For optional arguments, see PETsys Logbook 10/08"""
 import sys
 import numpy as np
 import pandas as pd
@@ -34,6 +34,9 @@ if __name__ == '__main__':
         if 'energy' in sys.argv:
             energyPlot = True
             print("Plotting energies, not hit count")
+            fileName += '_energy'
+        else:
+            fileName += '_hits'
 
         if 'debug' in sys.argv:
             debug = True
@@ -116,7 +119,12 @@ if __name__ == '__main__':
             plotType = "Location of hits in coincidence window"
         else:
             plotType = "Location of hits (weighted by ToT) in coincidence window"
-        plt.suptitle("Run: {}\n{}\nGroup {}".format(fileName, plotType, group))
+
+        if muon:
+            titleEnergy = "\t Total Energy = {}".format(summedEnergy)
+        else:
+            titleEnergy = ""
+        plt.suptitle("Run: {}\n{}\nGroup {}".format(fileName, plotType, group) + titleEnergy)
 
         leftHM = fig.add_subplot(221)
         leftHM.set_xlabel('x [pixels]')
@@ -141,11 +149,10 @@ if __name__ == '__main__':
             energyWeights_4 = None
             energyWeights_8 = None
 
-
         # plotting the heatmaps
         # getting around not plotting <2 on an array
         # fix does not account for the two events being on the same channel
-        # TODO: Either figure out how to do this properly, or get the colours sorted at the very least
+
         colourMap_white = ListedColormap("white")
 
         if chipID_4_data.shape[0] < 1:
@@ -153,7 +160,8 @@ if __name__ == '__main__':
                                    vmin=cBarMin, vmax=cBarMax)
 
         elif chipID_4_data.shape[0] < 2:
-            # The function won't plot a grid for one data point, so we double it. Need to compensate for this in the energy plot
+            # The function won't plot a grid for one data point, so we double it.
+            # Need to compensate for this in the energy plot
             temp_df_4 = pd.DataFrame(chipID_4_data)
             temp_df_4 = pd.concat([temp_df_4] * 2, ignore_index=True)
             if energyPlot:
@@ -177,16 +185,12 @@ if __name__ == '__main__':
                                      vmin=cBarMin, vmax=cBarMax)
 
         elif chipID_8_data.shape[0] < 2:
-
             temp_df_8 = pd.DataFrame(chipID_8_data)
             temp_df_8 = pd.concat([temp_df_8] * 2, ignore_index=True)
             if energyPlot:
                 temp_weights_8 = temp_df_8['energy'] / 2
             else:
                 temp_weights_8 = None
-
-            # txt = str(temp_df_8)
-            # plt.text(0.65, 0.47, txt, transform=fig.transFigure, size=12)
 
             h_right = rightHM.hist2d(temp_df_8['xi'], temp_df_8['yi'], bins=[8, 8], range=[[0, 8], [0, 8]],
                                      weights=temp_weights_8, cmin=1, vmin=cBarMin, vmax=cBarMax)
@@ -216,6 +220,9 @@ if __name__ == '__main__':
             if ToT:
                 cbar_left.set_label("Time over threshold [ns]")
                 cbar_right.set_label("Time over threshold [ns]")
+            else:
+                cbar_left.set_label("Energy [a.u.]")
+                cbar_right.set_label("Energy [a.u.]")
 
         if debug:
             plt.show()
