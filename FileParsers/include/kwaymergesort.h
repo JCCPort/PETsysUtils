@@ -76,14 +76,14 @@ public:
 	KwayMergeSort(std::string inFile,
 	              std::ostream *out,
 	              bool (*compareFunction)(const T &a, const T &b) = NULL,
-	              long maxBufferSize = 1000000,
+	              long maxBufferSize = 100000000,
 	              bool compressOutput = false,
 	              std::string tempPath = "./");
 
 	// constructor, using T's overloaded < operator.  Must be defined.
 	KwayMergeSort(std::string inFile,
 	              std::ostream *out,
-	              long maxBufferSize = 1000000,
+	              long maxBufferSize = 100000000,
 	              bool compressOutput = false,
 	              std::string tempPath = "./");
 
@@ -191,7 +191,7 @@ void KwayMergeSort<T>::DivideAndSort() {
 		exit(1);
 	}
 	std::vector<T> lineBuffer;
-	lineBuffer.reserve(100000);
+	lineBuffer.reserve(100000000);
 	unsigned long totalBytes = 0;  // track the number of bytes consumed so far.
 
 	// track whether or not we actually had to use a temp
@@ -248,6 +248,16 @@ void KwayMergeSort<T>::DivideAndSort() {
 }
 
 
+// include input and output archivers
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+
+// include this header to serialize vectors
+#include <boost/serialization/vector.hpp>
+
+
+
 template<class T>
 void KwayMergeSort<T>::WriteToTempFile(const std::vector<T> &lineBuffer) {
 	// name the current tempfile
@@ -256,24 +266,27 @@ void KwayMergeSort<T>::WriteToTempFile(const std::vector<T> &lineBuffer) {
 		tempFileSS << _inFile << "." << _runCounter;
 	else
 		tempFileSS << _tempPath << "/" << stl_basename(_inFile) << "." << _runCounter;
-	std::string tempFileName = tempFileSS.str();
+	const std::string tempFileName = std::string(tempFileSS.str());
 
 	// do we want a regular or a gzipped tempfile?
-	std::ofstream *output;
+	std::ofstream output;
 	//if (_compressOutput == true)
 	//output = new ogzstream(tempFileName.c_str(), ios::out);
 	//else
-	output = new std::ofstream(tempFileName.c_str(), std::ios::binary);
+	output = std::ofstream(tempFileName.c_str(), std::ios::binary);
+//
+//	// write the contents of the current buffer to the temp file
+//	for (size_t i = 0; i < lineBuffer.size(); ++i) {
+//		*output << lineBuffer[i];
+//	}
 
-	// write the contents of the current buffer to the temp file
-	for (size_t i = 0; i < lineBuffer.size(); ++i) {
-		*output << lineBuffer[i];
-	}
+	boost::archive::binary_oarchive oa(output);
+	oa & lineBuffer;
 
 	// update the tempFile number and add the tempFile to the list of tempFiles
 	++_runCounter;
-	output->close();
-	delete output;
+	output.close();
+//	delete output;
 	_vTempFileNames.push_back(tempFileName);
 }
 

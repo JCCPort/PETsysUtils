@@ -43,6 +43,14 @@ struct single {
 		}
 	};
 
+	template <typename Archive>
+	void serialize(Archive& ar, const unsigned int version)
+	{
+		ar & s.time;
+		ar & s.energy;
+		ar & s.channel;
+	}
+
 
 	// overload the << operator for writing a single struct
 	friend std::ostream& operator<<(std::ostream &os, const single &b)

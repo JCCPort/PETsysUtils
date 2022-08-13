@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
 	std::ofstream outFile(outputName);
 	// sort a single file by chrom then start
 
-	int  bufferSize     = 100000000;
+	long  bufferSize     = 100000000;
 	bool compressOutput = false;
 	std::string tempPath     = "./";
 	auto *bed_sorter_custom = new KwayMergeSort<single> (fileName,
