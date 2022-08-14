@@ -5,8 +5,8 @@ set (CMAKE_CXX_STANDARD 17)
 
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_C_FLAGS "-O0 -pthread -DISDEBUG")
-    set(CMAKE_CXX_FLAGS "-O0 -pthread -DISDEBUG")
+    set(CMAKE_C_FLAGS "-O0 -pthread -DISDEBUG -Wall -Wextra -pedantic")
+    set(CMAKE_CXX_FLAGS "-O0 -pthread -DISDEBUG -Wall -Wextra -pedantic")
     set(ISDEBUG)
 elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_C_FLAGS "-O3 -pthread -flto")

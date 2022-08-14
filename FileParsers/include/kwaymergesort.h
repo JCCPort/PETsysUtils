@@ -74,7 +74,7 @@ public:
 
 	// constructor, using custom comparison function
 	KwayMergeSort(std::string inFile,
-	              std::ostream *out,
+	              std::ofstream *out,
 	              bool (*compareFunction)(const T &a, const T &b) = NULL,
 	              long maxBufferSize = 100000000,
 	              bool compressOutput = false,
@@ -82,7 +82,7 @@ public:
 
 	// constructor, using T's overloaded < operator.  Must be defined.
 	KwayMergeSort(std::string inFile,
-	              std::ostream *out,
+	              std::ofstream *out,
 	              long maxBufferSize = 100000000,
 	              bool compressOutput = false,
 	              std::string tempPath = "./");
@@ -106,7 +106,7 @@ private:
 	unsigned int _runCounter;
 	bool _compressOutput;
 	bool _tempFileUsed{};
-	std::ostream *_out;
+	std::ofstream *_out;
 
 	// drives the creation of sorted sub-files stored on disk.
 	void DivideAndSort();
@@ -128,27 +128,28 @@ private:
 // IMPLEMENTATION
 // Class methods and elements
 //************************************************
-
 // constructor
 template<class T>
 KwayMergeSort<T>::KwayMergeSort(std::string inFile,
-                                std::ostream *out,
+                                std::ofstream *out,
                                 bool (*compareFunction)(const T &a, const T &b),
                                 long maxBufferSize,
                                 bool compressOutput,
                                 std::string tempPath)
 		: _inFile(std::move(inFile)), _out(out), _compareFunction(compareFunction), _tempPath(std::move(tempPath)), _maxBufferSize(maxBufferSize),
-		  _runCounter(0), _compressOutput(compressOutput) {}
+		  _runCounter(0), _compressOutput(compressOutput) {
+		  }
 
 // constructor
 template<class T>
 KwayMergeSort<T>::KwayMergeSort(std::string inFile,
-                                std::ostream *out,
+                                std::ofstream *out,
                                 long maxBufferSize,
                                 bool compressOutput,
                                 std::string tempPath)
 		: _inFile(std::move(inFile)), _out(out), _compareFunction(NULL), _tempPath(std::move(tempPath)), _maxBufferSize(maxBufferSize), _runCounter(0),
-		  _compressOutput(compressOutput) {}
+		  _compressOutput(compressOutput) {
+		  }
 
 // destructor
 template<class T>
@@ -237,25 +238,18 @@ void KwayMergeSort<T>::DivideAndSort() {
 			// otherwise, the entire file fit in the memory given,
 			// so we can just dump to the output.
 		else {
+
 			if (_compareFunction != NULL)
 				sort(lineBuffer.begin(), lineBuffer.end(), *_compareFunction);
 			else
 				sort(lineBuffer.begin(), lineBuffer.end());
-			for (size_t i = 0; i < lineBuffer.size(); ++i)
-				*_out << lineBuffer[i];
+
+
+			uint64_t size = lineBuffer.size();
+			_out->write(reinterpret_cast<const char*>(lineBuffer.data()), size * sizeof(T));
 		}
 	}
 }
-
-
-// include input and output archivers
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-
-// include this header to serialize vectors
-#include <boost/serialization/vector.hpp>
-
 
 
 template<class T>
@@ -269,24 +263,19 @@ void KwayMergeSort<T>::WriteToTempFile(const std::vector<T> &lineBuffer) {
 	const std::string tempFileName = std::string(tempFileSS.str());
 
 	// do we want a regular or a gzipped tempfile?
-	std::ofstream output;
+	std::ofstream *output;
 	//if (_compressOutput == true)
 	//output = new ogzstream(tempFileName.c_str(), ios::out);
 	//else
-	output = std::ofstream(tempFileName.c_str(), std::ios::binary);
-//
-//	// write the contents of the current buffer to the temp file
-//	for (size_t i = 0; i < lineBuffer.size(); ++i) {
-//		*output << lineBuffer[i];
-//	}
+	output = new std::ofstream(tempFileName.c_str(), std::ios::binary);
 
-	boost::archive::binary_oarchive oa(output);
-	oa & lineBuffer;
+	uint64_t size = lineBuffer.size();
+	output->write(reinterpret_cast<const char*>(lineBuffer.data()), size * sizeof(T));
 
 	// update the tempFile number and add the tempFile to the list of tempFiles
 	++_runCounter;
-	output.close();
-//	delete output;
+	output->close();
+	delete output;
 	_vTempFileNames.push_back(tempFileName);
 }
 
@@ -362,8 +351,8 @@ void KwayMergeSort<T>::OpenTempFiles() {
 			_vTempFiles.push_back(file);
 		} else {
 			std::cerr << "Unable to open temp file (" << _vTempFileName
-			     << ").  I suspect a limit on number of open file handles.  Exiting."
-			     << std::endl;
+			          << ").  I suspect a limit on number of open file handles.  Exiting."
+			          << std::endl;
 			exit(1);
 		}
 	}

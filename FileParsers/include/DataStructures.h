@@ -31,26 +31,9 @@ struct single_{
 struct single {
 	single_ s;
 
-	bool operator < (const single &b) const{
-		if (s.time < b.s.time){
-			return true;
-		}
-		else if (s.time > b.s.time) {
-			return false ;
-		}
-		else{
-			return false;
-		}
+	inline bool operator < (const single &b) const{
+		return s.time < b.s.time;
 	};
-
-	template <typename Archive>
-	void serialize(Archive& ar, const unsigned int version)
-	{
-		ar & s.time;
-		ar & s.energy;
-		ar & s.channel;
-	}
-
 
 	// overload the << operator for writing a single struct
 	friend std::ostream& operator<<(std::ostream &os, const single &b)
@@ -67,10 +50,11 @@ struct single {
 };
 
 
-bool bySize(single const &a, single const &b) {
-	if      (a.s.time < b.s.time)  return true;
-	else if (a.s.time > b.s.time)  return false;
-	else {return false;}
+inline bool bySize(single const &a, single const &b) {
+	return a.s.time < b.s.time;
+//	if      (a.s.time < b.s.time)  return true;
+//	else if (a.s.time > b.s.time)  return false;
+//	else {return false;}
 }
 
 enum FileType{
