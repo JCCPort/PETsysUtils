@@ -14,6 +14,8 @@ std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long w
 	long long prevTime = 0;
 	long evNum = 0;
 	std::vector<Singles> hitsInWindow;
+	hitsInWindow.reserve(1000);
+	events.reserve(10000000);
 
 	SinglesWGroup event_{};
 	while (dataFile.read((char *) (&single_), sizeof(single_))) {
@@ -54,6 +56,8 @@ std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long w
 		prevTime = single_.time;
 	}
 	dataFile.close();
+
+	std::cout << "Found " << events.size() << " clustered hits" << std::endl;
 
 	return events;
 }
@@ -123,6 +127,7 @@ int main(int argc, char* argv[]) {
 		bed_sorter_custom->Sort();
 		outFile.close();
 		events = parseEvents(outputName, windowSize, majority, channels);
+		delete bed_sorter_custom;
 	} else{
 		events = parseEvents(fileName, windowSize, majority, channels);
 	}
