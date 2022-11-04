@@ -28,11 +28,11 @@ if __name__ == '__main__':
         print("Length of groupSumEnergies:", len(groupSumEnergies))
         print("groupSumEnergies min = {}, max = {}".format(np.min(groupSumEnergies), np.max(groupSumEnergies)))
 
-    plt.hist(groupSumEnergies, bins=500, label=histLabel)
+    plt.hist(groupSumEnergies, bins=200, label=histLabel)
     # plt.xlim([-2, 20])
     plt.ylabel("Counts")
     plt.xlabel("Sum energy")
-    #plt.yscale('log')
+    plt.yscale('log')
     plt.title("Sum energy {}".format(sys.argv[1].split("/")[-1]))
     plt.legend()
     plt.tight_layout()

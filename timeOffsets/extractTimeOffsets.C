@@ -1,16 +1,22 @@
 
 void extractTimeOffsets()
 {
-  TFile *_file0 = TFile::Open("~/Documents/Work/sussex_petsys/data/cube_test_singleFan/2022_07_11/run5_LED_qdc_single.root");
+  TFile *_file0 = TFile::Open("/data/NewCube2_23-26C/20221026/run7_LED_10s_th20_single.root");
   TTree *tree = (TTree*)_file0->Get("data");
   Int_t n = tree->GetEntries();
 
   // means for run5 11/07
-  Double_t mean2 = 5000024958033.312500000;
-  Double_t mean3 = 5000024956028.312500000;
+  //Double_t mean2 = 5000024958033.312500000;
+  //Double_t mean3 = 5000024956028.312500000;
+  // means and mins for run7 26/10
+  long long mean2 = 3546066328407;
+  //Double_t mean3 = 5000024956028.312500000;
+  long long min1 = 3546.066324e9;
 
-  TH1D* timeH4 = new TH1D("timeH4",";time [ps];entries",7000,5000.024954e9-mean2,5000.024961e9-mean2);
-  TH1D* timeH5 = new TH1D("timeH5",";time [ps];entries",7000,5000.024954e9-mean3,5000.024961e9-mean3);
+  int nbins = 10000;
+
+  TH1D* timeH4 = new TH1D("timeH4",";time [ps];entries",nbins,min1-mean2,min1-mean2+nbins);
+  TH1D* timeH8 = new TH1D("timeH8",";time [ps];entries",nbins,min1-mean2,min1-mean2+nbins);
 
   Float_t energy;
   Long64_t t;
@@ -21,26 +27,26 @@ void extractTimeOffsets()
 
   for (Long64_t i=0;i<n;i++){
     tree->GetEntry(i);
-    if (energy > 10){
+    //if (energy > 10){
       if (channelID < 500) timeH4->Fill(t-mean2,channelID);
-      else timeH5->Fill(t-mean3,channelID);
-    }
+      else timeH8->Fill(t-mean2,channelID);
+    //}
   }
 
-  for (int i = 1; i<7000; i++){
+  for (int i = 1; i<nbins; i++){
     UInt_t val = timeH4->GetBinContent(i);
     UInt_t chip = (UInt_t)(val/64);
     UInt_t channel = val%64;
     if (val>0){
       Long64_t cent = timeH4->GetBinCenter(i);
-      printf("%d %d %.lld\n",chip,channel,cent);
+      printf("%d\t%d\t%.lld\n",chip,channel,cent);
     }
-    val = timeH5->GetBinContent(i);
+    val = timeH8->GetBinContent(i);
     chip = (UInt_t)(val/64);
     channel = val%64;
     if (val>0){
-      Long64_t cent = timeH5->GetBinCenter(i);
-      printf("%d %d %.lld\n",chip,channel,cent);
+      Long64_t cent = timeH8->GetBinCenter(i);
+      printf("%d\t%d\t%.lld\n",chip,channel,cent);
     }
   }
 }

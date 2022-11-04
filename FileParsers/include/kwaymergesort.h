@@ -192,7 +192,7 @@ void KwayMergeSort<T>::DivideAndSort() {
 		exit(1);
 	}
 	std::vector<T> lineBuffer;
-	lineBuffer.reserve(100000000);
+	lineBuffer.reserve(10000000);
 	unsigned long totalBytes = 0;  // track the number of bytes consumed so far.
 
 	// track whether or not we actually had to use a temp
