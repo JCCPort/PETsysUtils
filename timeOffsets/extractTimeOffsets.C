@@ -1,10 +1,12 @@
+#include <vector>
+
 // macro to find time offsets of each channel using pulsed LED data
 // the average hit time of each LED pulse is found by averaging over both arrays
 // the offset of each channel to the pulse average is then found
 // the average offset is then calculated and printed for each channel
 void extractTimeOffsets()
 {
-  TFile *_file0 = TFile::Open("~/Documents/Work/sussex_petsys/data/cube_test_singleFan/2022_07_11/run5_LED_qdc_single.root");
+  TFile *_file0 = TFile::Open("/data/NewCube2_23-26C/20221026/run7_LED_10s_th20_single.root");
   TTree *tree = (TTree*)_file0->Get("data");
   Int_t n = tree->GetEntries();
 
@@ -25,53 +27,79 @@ void extractTimeOffsets()
   tree->SetBranchAddress("energy",&energy);
   tree->SetBranchAddress("channelID",&channelID);
 
-  int count = 0;
-  Double_t mean = 0;
+  Long64_t mean = 0;
   int pulse[700] = {0};
-  int pulseNum = 0;
-  int margin = 1000;
+  int pulseNum = 1;
+  int margin = 10;
   int pulseHits = 0;
   tree->GetEntry(margin);
-  double t_old = t;
+  Long64_t t_old = t;
   // iterate through events and get average pulse hit times
   for (Long64_t i=margin;i<n-margin;i++){
     tree->GetEntry(i);
-    if (energy > 10){
-      count++;
-      if (t-t_old > 1e6) { // condition for new pulse
-        mean /= (double)pulseHits; 
+    //if (energy < 0.5) continue; // PE cutoff
+    if (t-t_old > 1e6) { // condition for new pulse
+      mean /= (double)pulseHits; 
+      if (pulseHits < 32) 
+      {
+        mean = 0;
+        pulseHits = 0;
+      }
+      else
+      {
         meanH->Fill(pulseNum, mean);
         mean = 0; 
         pulse[channelID]++;
         pulseNum++;
         pulseHits = 0;
       }
-      //if (channelID < 500) timeH4->Fill(t-mean2,channelID);
-      //else timeH8->Fill(t-mean3,channelID);
-      pulseHits++;
-      mean += t;
-      t_old = t;
     }
+    //if (channelID < 500) timeH4->Fill(t-mean2,channelID);
+    //else timeH8->Fill(t-mean3,channelID);
+    pulseHits++;
+    mean += t;
+    t_old = t;
   }
   int pulseTotal[700] = {0};
-  count = 0;
-  pulseNum = 1;
+  pulseNum = 2;
   tree->GetEntry(margin);
   t_old = t;
-  double meanArray[700] = {0};
+  pulseHits = 0;
+  Long64_t meanArray[700] = {0};
+  std::vector<UInt_t> chID_tmp;
+  std::vector<Long64_t> t_tmp;
   // iterate through events and find hit offsets relative to pulse average
   for (Long64_t i=margin;i<n-margin;i++){
     tree->GetEntry(i);
-    if (energy > 10){
-      count++;
-      //if (i%10000==0) printf("%f\n",t-mean);
-      if (t-t_old > 1e6) pulseNum++;
-      mean = meanH->GetBinContent(pulseNum);
-      if (abs(t-mean)>10000) continue;
-      meanArray[channelID] += (t-mean);
-      pulseTotal[channelID]++;
-      t_old = t;
+    //if (energy < 0.5) continue;
+    //if (i%10000==0) printf("%f\n",t-mean);
+    if (t-t_old > 1e6){
+      printf("%d\n",pulseHits);
+      if (pulseHits < 32){
+        pulseHits = 0;
+        chID_tmp.clear();
+        t_tmp.clear();
+      }
+      else
+      {
+        pulseHits = 0;
+        for (int j=0; j<chID_tmp.size(); j++)
+        {
+          mean = meanH->GetBinContent(pulseNum);
+          meanArray[chID_tmp[j]] += (t_tmp[j]-mean);
+          pulseTotal[chID_tmp[j]]++;
+        }
+        pulseNum++;
+        chID_tmp.clear();
+        t_tmp.clear();
+      }
     }
+    chID_tmp.push_back(channelID);
+    t_tmp.push_back(t);
+    mean = meanH->GetBinContent(pulseNum);
+    //if (abs(t-mean)>10e3) {t_old = t; continue;}
+    pulseHits++;
+    t_old = t;
   }
 
   // print average time offsets for each channel
@@ -80,7 +108,7 @@ void extractTimeOffsets()
     UInt_t chip = (UInt_t)(i/64);
     UInt_t channel = i%64;
     if (val!=0){
-      printf("%d %d %f\n",chip,channel,val);
+      printf("0\t0\t%d\t%d\t%f\n",chip,channel,val);
     }
   }
 }
