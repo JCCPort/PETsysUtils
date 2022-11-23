@@ -1,5 +1,6 @@
 
 #include "include/CoincidenceProcess.h"
+#include "include/argparse.h"
 
 std::vector<SinglesWGroup> parseEvents(const std::string &inputPath, long long windowSize, int numHitsCoincidence, const std::vector<int>& includedChannels) {
 	// TODO(josh): Group by channels or by hits
@@ -98,23 +99,52 @@ std::vector<int> readChannels(const std::string& path){
 }
 
 int main(int argc, char* argv[]) {
+	argparse::ArgumentParser program("Event Builder Supreme");
+	program.add_description("Multi-threaded implementation of the RecoZoR PE finding algorithm.");
+	program.add_argument("-i", "--input")
+			.required()
+			.help("Path to data file.");
+	program.add_argument("-o", "--output")
+			.help("Path for output grouped file. Defaults to input file name with '_grouped' appended.");
+	program.add_argument("--mapping_dir")
+			.required()
+			.help("Path to file that lists channels to consider events from.");
+	program.add_argument("--majority")
+			.required()
+			.help("Number of hits in time window required for event building.")
+			.scan<'i', int>();
+	program.add_argument("--window_size")
+			.required()
+			.help("Size of time window in ns.")
+			.scan<'i', long long>();
+	program.add_argument("--sort")
+			.default_value(true)
+			.help("Set to false if file is already sorted.");
+	
+	program.parse_args(argc, argv);
+	
+	std::string fileName            = program.get<std::string>("-i");
+	long long windowSize            = program.get<long long>("--window_size") * 1000;
+	int majority                    = program.get<int>("--majority");
+	std::string allowedChannelPath  = program.get<std::string>("--mapping_dir");
+	bool sort                       = program.get<bool>("--sort");
+	
+	std::string outputFileName;
+	if(program.is_used("-o")){
+		outputFileName = program.get<std::string>("-o");
+	} else {
+		outputFileName = fileName.substr(0, fileName.find_last_of('.')) + "_grouped" + fileName.substr(fileName.find_last_of('.'), fileName.size());;
+	}
 
-	std::string fileName = argv[1];
-	long long windowSize = (long long)(std::stoi(argv[2]));
-	int majority = std::stoi(argv[3]);
-	std::string allowedChannelPath = argv[4];
-	bool sort = bool(std::stoi(argv[5]));
-
-	long  bufferSize     = 10000000000;
-	bool compressOutput = false;
-	std::string tempPath     = "./";
+	long bufferSize      = 10000000000;
+	bool compressOutput  = false;
+	std::string tempPath = "./";
 
 	std::vector<int> channels = readChannels(allowedChannelPath);
 
-	std::string outputName = fileName.substr(0, fileName.find_last_of('.')) + "_grouped" + fileName.substr(fileName.find_last_of('.'), fileName.size());
 	std::vector<SinglesWGroup> events;
 	if(sort){
-		std::ofstream outFile(outputName);
+		std::ofstream outFile(outputFileName);
 
 		// sort a single file by chrom then start
 		auto *bed_sorter_custom = new KwayMergeSort<single> (fileName,
@@ -126,13 +156,13 @@ int main(int argc, char* argv[]) {
 		bed_sorter_custom->SetComparison(bySize);
 		bed_sorter_custom->Sort();
 		outFile.close();
-		events = parseEvents(outputName, windowSize, majority, channels);
+		events = parseEvents(outputFileName, windowSize, majority, channels);
 		delete bed_sorter_custom;
 	} else{
 		events = parseEvents(fileName, windowSize, majority, channels);
 	}
 
-	writeEvents(events, Binary, outputName);
+	writeEvents(events, Binary, outputFileName);
 
-	std::cout << "Found coincidences. Output at:\t" << outputName << std::endl;
+	std::cout << "Found coincidences. Output at:\t" << outputFileName << std::endl;
 }
